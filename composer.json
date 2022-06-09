@@ -1,6 +1,6 @@
 {
     "name": "sreynoldsjr/reynolds-dbf",
-    "description": "Php classes for reading and modifying dbf files",
+    "description": "Php classes for reading and modifying MS Visual FoxPro .dbf files.",
     "type": "library",
     "license": "MIT",
     "autoload": {
