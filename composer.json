@@ -1,0 +1,22 @@
+{
+    "name": "sreynoldsjr/reynolds-dbf",
+    "description": "Php classes for reading and modifying dbf files",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Sreynoldsjr\\ReynoldsDbf\\": "src/",
+            "Sreynoldsjr\\ReynoldsDbf\\Test\\": "tests/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Stephen Reynolds",
+            "email": "stephengreynoldsjr@gmail.com"
+        }
+    ],
+    "require-dev": {
+        "phpunit/phpunit": "^9.5",
+        "orchestra/testbench": "^7.5"
+    }
+}
