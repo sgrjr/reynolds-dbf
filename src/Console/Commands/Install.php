@@ -25,6 +25,6 @@ class Install extends Command
      */
     public function handle()
     {
-        $this->comment(PHP_EOL."JUST A TEST".PHP_EOL);
+        $this->comment(PHP_EOL."JUST A TEST 2".PHP_EOL);
     }
 }

@@ -3,7 +3,7 @@
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Blade;
 use Sreynoldsjr\ReynoldsDbf\View\Components\FooterComponent;
-use Sreynoldsjr\ReynoldsDbf\Console\Commands\InstallCommand;
+use Sreynoldsjr\ReynoldsDbf\Console\Commands\Install;
 use Sreynoldsjr\ReynoldsDbf\ReynoldsDbf;
 
 class ReynoldsDbfServiceProvider extends ServiceProvider
@@ -34,7 +34,7 @@ class ReynoldsDbfServiceProvider extends ServiceProvider
 
         if ($this->app->runningInConsole()) {
             $this->commands([
-                InstallCommand::class
+                Install::class
             ]);
         }
     }
