@@ -1,4 +1,4 @@
-<?php namespace Sreynoldsjr\ReynoldsDbf\Ask;
+<?php namespace Sreynoldsjr\ReynoldsDbf\Traits;
 
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;

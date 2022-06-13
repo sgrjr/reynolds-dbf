@@ -1,4 +1,4 @@
-<?php namespace App\Ask\AskTrait;
+<?php namespace Sreynoldsjr\ReynoldsDbf\Traits;
 
 trait HeadTrait {
 

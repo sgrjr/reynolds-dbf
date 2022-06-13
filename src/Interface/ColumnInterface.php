@@ -1,4 +1,4 @@
-<?php \App\Ask\Interface;
+<?php namespace Sreynoldsjr\ReynoldsDbf\Interface;
 
 interface Column
 {

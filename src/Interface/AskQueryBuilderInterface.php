@@ -1,4 +1,4 @@
-<?php namespace App\Ask\AskInterface;
+<?php namespace Sreynoldsjr\ReynoldsDbf\Interface;
 
 interface AskQueryBuilderInterface {
     function source();
