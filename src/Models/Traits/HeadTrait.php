@@ -1,4 +1,4 @@
-<?php namespace Sreynoldsjr\ReynoldsDbf\Traits;
+<?php namespace Sreynoldsjr\ReynoldsDbf\Models\Traits;
 
 trait HeadTrait {
 

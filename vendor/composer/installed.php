@@ -5,7 +5,7 @@
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
-        'reference' => 'fd7c35859288f85faf2370eaaa44cf6061dc8473',
+        'reference' => '22d4bd4424963decb8176a440d8ba0c7d489a6dd',
         'name' => 'sreynoldsjr/reynolds-dbf',
         'dev' => true,
     ),
@@ -383,12 +383,12 @@
             'dev_requirement' => false,
         ),
         'league/flysystem' => array(
-            'pretty_version' => '3.0.20',
-            'version' => '3.0.20.0',
+            'pretty_version' => '3.0.21',
+            'version' => '3.0.21.0',
             'type' => 'library',
             'install_path' => __DIR__ . '/../league/flysystem',
             'aliases' => array(),
-            'reference' => '42a2f47dcf39944e2aee1b660ee55ab6ef69b535',
+            'reference' => '8f1fcf9d2304ff77a006aa36dd2cb5f236999b12',
             'dev_requirement' => false,
         ),
         'league/mime-type-detection' => array(
@@ -932,7 +932,7 @@
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
-            'reference' => 'fd7c35859288f85faf2370eaaa44cf6061dc8473',
+            'reference' => '22d4bd4424963decb8176a440d8ba0c7d489a6dd',
             'dev_requirement' => false,
         ),
         'symfony/console' => array(

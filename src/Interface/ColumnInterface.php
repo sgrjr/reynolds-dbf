@@ -1,6 +1,6 @@
 <?php namespace Sreynoldsjr\ReynoldsDbf\Interface;
 
-interface Column
+interface ColumnInterface
 {
     public function setVariable($name, $var);
     public function getHtml($template);
