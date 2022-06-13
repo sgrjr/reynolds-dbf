@@ -7,6 +7,7 @@ use stdclass;
 class Model {
 
 	use \Sreynoldsjr\ReynoldsDbf\Models\Traits\DbfTableTrait;
+	use \Sreynoldsjr\ReynoldsDbf\Models\Traits\AskTrait;
 
 	private $props;
 	public $data;

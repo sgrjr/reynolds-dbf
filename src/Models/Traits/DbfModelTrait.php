@@ -6,8 +6,5 @@ trait DbfModelTrait {
 
     public function dbf(){
         return ReynoldsDbf::model($this->getTable());
-    }
-
-    
-		
+    }	
 }
