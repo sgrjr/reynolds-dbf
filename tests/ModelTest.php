@@ -15,8 +15,6 @@ class ModelTest extends TestCase
         foreach(ReynoldsDbf::all() AS $model){
             $this->assertSame(count($model->columns) > 0, true);
         }
-
-       
     }
 
     public function testWebheadClass()
