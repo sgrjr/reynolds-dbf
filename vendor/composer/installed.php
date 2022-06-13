@@ -5,7 +5,7 @@
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
-        'reference' => '22d4bd4424963decb8176a440d8ba0c7d489a6dd',
+        'reference' => 'f5f9144b1dad08c9073b90d59e5889fd6c5c41e5',
         'name' => 'sreynoldsjr/reynolds-dbf',
         'dev' => true,
     ),
@@ -932,7 +932,7 @@
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
-            'reference' => '22d4bd4424963decb8176a440d8ba0c7d489a6dd',
+            'reference' => 'f5f9144b1dad08c9073b90d59e5889fd6c5c41e5',
             'dev_requirement' => false,
         ),
         'symfony/console' => array(

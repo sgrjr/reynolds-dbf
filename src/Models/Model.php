@@ -6,6 +6,8 @@ use stdclass;
 
 class Model {
 
+	use \Sreynoldsjr\ReynoldsDbf\Models\Traits\DbfTableTrait;
+
 	private $props;
 	public $data;
 
