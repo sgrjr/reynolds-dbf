@@ -1,4 +1,4 @@
-<?php namespace App\Ask\DatabaseType; 
+<?php namespace Sreynoldsjr\ReynoldsDbf\Models;
 /**
 *
 * This class defines the data access functions to a DBF record
@@ -6,7 +6,7 @@
 *
 **/
 
-class XBaseRecord {
+class Record {
 
     var $zerodate = 0x253d8c;
     var $table;
@@ -352,6 +352,11 @@ class XBaseRecord {
      function json(){
         return json_encode($this->getData());
      }
+
+     function toArray(){
+        return $this->getData();
+     }
+
     function getData($skipFields = [], $skipMemo = true) {
 
         $data = [];

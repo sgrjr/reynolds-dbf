@@ -53,6 +53,7 @@ class ReynoldsDbfServiceProvider extends ServiceProvider
         $this->app->singleton(ReynoldsDbf::class, function () {
             return new ReynoldsDbf();
         });
+        
         $this->app->alias(ReynoldsDbf::class, 'reynolds-dbf');
     }
 }

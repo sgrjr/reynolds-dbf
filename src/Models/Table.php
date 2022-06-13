@@ -1,11 +1,14 @@
-<?php namespace App\Ask\DatabaseType; 
+<?php namespace Sreynoldsjr\ReynoldsDbf\Models;
 
+use Sreynoldsjr\ReynoldsDbf\Models\Column; 
+use Sreynoldsjr\ReynoldsDbf\Models\Memo; 
+use Sreynoldsjr\ReynoldsDbf\Models\Record; 
 /**
 *
 * This class provides the main entry to a DBF table file.
 * common usage:
 * 1. construct an instance
-* 	$table = new XBaseTable($name);
+* 	$table = new Table($name);
 * where $name is the path to the the DBF file, or a stream like 'php://input'
 *
 * 2. open the file to read the header
@@ -19,10 +22,7 @@
 *
 **/
 
-use App\Ask\DatabaseType\XBaseColumn; 
-use App\Ask\DatabaseType\Memo; 
-
-class XBaseTable {
+class Table {
 
     var $name;
     var $fp;
@@ -92,13 +92,8 @@ class XBaseTable {
             $this->read_write_options = "r";
         }
 
-        //try {
-            $this->initDbf();
-        //}
-        //catch(\Exception $e){
-            //\App\Jobs\UpdateDbfWhenReady::dispatchSync($this);
-         //   echo $e;
-        //}
+        $this->initDbf();
+
         return $this; 
 	}
 
@@ -112,10 +107,10 @@ class XBaseTable {
             catch(\Exception $exception){
                 echo 'Could not open. File is already open.';
                 //maybe someone is saving changes and we just need to wait to try to open again.
-               // sleep(3);
-                //if($this->fp = fopen($this->name,$this->read_write_options)) {
-                   // $this->readHeader()->setMemoTable();
-                //}
+                sleep(3);
+                if($this->fp = fopen($this->name,$this->read_write_options)) {
+                   $this->readHeader()->setMemoTable();
+                }
                 return false;
             }
     } 
@@ -162,7 +157,7 @@ class XBaseTable {
         $this->columns = array();
         $bytepos = 1;
         for ($i=0;$i<$fieldCount;$i++) {
-            $column = new XBaseColumn(
+            $column = new Column(
                 $this->readString(11),	// name
                 $this->readByte(),		// type
                 $this->readInt(),		// memAddress
@@ -343,7 +338,7 @@ class XBaseTable {
         $raw_data = $this->readBytes($this->recordByteLength);
         $inserted = false;
 
-        $this->record = new XBaseRecord($this, $this->recordPos, $raw_data);//$table, $recordIndex, $rawData, $deleted, $inserted = false
+        $this->record = new Record($this, $this->recordPos, $raw_data);//$table, $recordIndex, $rawData, $deleted, $inserted = false
 
         return $this->record;
     }
@@ -462,7 +457,7 @@ class XBaseTable {
     }
 
     function appendRecord() {
-        $this->record = new XBaseRecord($this, $this->recordCount,[], false, true);
+        $this->record = new Record($this, $this->recordCount,[], false, true);
         $this->recordCount+=1;
         return $this->record;
     }

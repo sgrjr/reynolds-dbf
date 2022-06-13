@@ -1,6 +1,6 @@
-<?php namespace App\Ask\DatabaseType\PHPXbase; 
+<?php namespace Sreynoldsjr\ReynoldsDbf\Models;
 
-class OLDMemo {
+class Memo {
   private $headers = null;
   private $db, $fp;
   private $signature = [

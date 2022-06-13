@@ -1,9 +1,9 @@
-<?php namespace App\Ask\DatabaseType; 
+<?php namespace Sreynoldsjr\ReynoldsDbf\Models;
 /**
 * This class represents a DBF column
 * Do not construct an instance yourself, it's useless that way.
 **/
-class XBaseColumn extends \ArrayObject {
+class Column extends \ArrayObject {
 
     var $name;
     var $rawname;
@@ -272,5 +272,9 @@ class XBaseColumn extends \ArrayObject {
         ];
 
        return $types[$this->getType()];
+    }
+
+    public function toArray(){
+        return $this->getContainer();
     }
 }

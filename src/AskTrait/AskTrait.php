@@ -1,13 +1,11 @@
-<?php namespace App\Ask\AskTrait;
+<?php namespace Sreynoldsjr\ReynoldsDbf\Ask;
 
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Config, Schema;
-use App\Events\ItemWasAddedToCart;
-use App\Events\CartItemWasUpdated;
-use App\Events\FailedWritingToDbf;
-use App\Events\NewDbfEntryCreated;
-use App\Events\ExistingDbfEntryUpdated;
+use Sreynoldsjr\ReynoldsDbf\Events\FailedWritingToDbf;
+use Sreynoldsjr\ReynoldsDbf\Events\NewDbfEntryCreated;
+use Sreynoldsjr\ReynoldsDbf\Events\ExistingDbfEntryUpdated;
             
 trait AskTrait {
 
@@ -88,7 +86,7 @@ public static function dbfUpdateOrCreate($graphql_root, $attributes, $request=fa
             //If the title wasn't already on the order then just create a new order item.
             $model = (new static($attributes))->fillAttributes($user);
             $model->save();
-            ItemWasAddedToCart::dispatch($model, $user);
+            NewDbfEntryCreated::dispatch($model, $user->id);
         }else{
             $isNewEntry = false;
             //Was already on order so update model attributes with the passed new attributes.
@@ -99,7 +97,7 @@ public static function dbfUpdateOrCreate($graphql_root, $attributes, $request=fa
                     $model->$k = $v;
                 }
             }
-            CartItemWasUpdated::dispatch($model, $user);
+            ExistingDbfEntryUpdated::dispatch($model, $user->id);
         }
 
      }else{
@@ -130,14 +128,14 @@ public static function dbfUpdateOrCreate($graphql_root, $attributes, $request=fa
 
         //Check which event to fire
         if($isNewEntry){
-            NewDbfEntryCreated::dispatch($model, $user);
+            NewDbfEntryCreated::dispatch($model, $user->id);
         }else{
-            ExistingDbfEntryUpdated::dispatch($model, $user);
+            ExistingDbfEntryUpdated::dispatch($model, $user->id);
         }    
 
      }else{
         \App\Helpers\Misc::dbfLog('Could not write to dbf and or database. There is probably now a blank entry in DBF because of this function fail. ' . static::class . " attributes: " . json_encode($attributes));
-        FailedWritingToDbf::dispatch($model, $user);
+        FailedWritingToDbf::dispatch($model, $user->id);
      }
      return $user;
 }

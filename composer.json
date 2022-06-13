@@ -26,6 +26,8 @@
         "illuminate/routing": "^9.17",
         "illuminate/http": "^9.17",
         "illuminate/view": "^9.17",
-        "illuminate/console": "^9.17"
+        "illuminate/console": "^9.17",
+        "webonyx/graphql-php": "^14.11",
+        "nuwave/lighthouse": "^5.53"
     }
 }
