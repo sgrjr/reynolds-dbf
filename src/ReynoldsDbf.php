@@ -19,7 +19,8 @@ class ReynoldsDbf
 
         }else{
             foreach($config['files'] AS $key=>$file){
-                $this->files[$key] = new Model($config['root_paths'][$file[1]] . DIRECTORY_SEPARATOR . $file[0]);
+                $model = "\\Sreynoldsjr\\ReynoldsDbf\\Models\\".ucfirst($key);
+                $this->files[$key] = new $model();
             }
         }
 

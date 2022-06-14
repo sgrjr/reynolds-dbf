@@ -3,88 +3,101 @@
 use Sreynoldsjr\ReynoldsDbf\Models\Table;
 use Sreynoldsjr\ReynoldsDbf\Helpers\Helper;
 use stdclass;
+use Sreynoldsjr\ReynoldsDbf\QueryBuilder\QueryBuilder;
+use Illuminate\Database\Eloquent\Model as EloquentModel;
+use Illuminate\Database\Query\Builder;
+use Sreynoldsjr\ReynoldsDbf\Models\Traits\DbfTableTrait;
+use Sreynoldsjr\ReynoldsDbf\Models\Traits\DbfModelTrait;
+use Sreynoldsjr\ReynoldsDbf\Models\Traits\DbfValidationTrait;
 
-class Model {
+class Model extends EloquentModel {
 
-	use \Sreynoldsjr\ReynoldsDbf\Models\Traits\DbfTableTrait;
-	use \Sreynoldsjr\ReynoldsDbf\Models\Traits\AskTrait;
+	use DbfTableTrait;
+	use DbfModelTrait;
+	use DbfValidationTrait;
 
-	private $props;
-	public $data;
+protected $connection = 'dbf';
+public $source;
+public $sourceTable;
+public $props = [];
 
-	public function __construct($file_name, $skip_memo = true, $writable = false){
-		$this->props = [
-			"name" => $file_name,
-			"skip_memo" => $skip_memo,
-			"writable" => $writable
-		];
+public function __construct(array $attributes = []){
+	parent::__construct($attributes);
+	$file = \Config::get('reynolds-dbf.files')[$this->getTable()];
+	$this->setSource(config('reynolds-dbf.root_paths')[$file[1]] . DIRECTORY_SEPARATOR . $file[0]);
+}
 
-		$this->data = [];
-	}
-
-	private function setTable(){
-		$this->props['table'] = new Table($this->name, $this->skip_memo, $this->writable);
-		return $this;
-	}
-
-	private function getTable(){
-		if(!isset($this->props["table"])){$this->setTable();}
-		return $this->props['table'];
-	}
-
-	public function setColumns(){
-		$this->table->open();
-		$this->props['columns'] = [];
-
-		foreach($this->table->getColumns() AS $column){
-			$this->props['columns'][] = $column->toArray();
-		}
-
-		$this->table->close();
-		return $this;
-	}
-
-	public function getColumns(){
-		if(!isset($this->props["columns"])){$this->setColumns();}
-		return $this->props['columns'];
-	}
-
-	public function getName(){
-		return $this->props['name'];
-	}
-
-	public function getSkipMemo(){
-		return $this->props['skip_memo'];
-	}
-
-	public function getWritable(){
-		return $this->props['writable'];
-	}
-
-    public function __set($name, $value)
-    {	
-        $this->props[$name] = $value;
-    }
-
-	public function __get($key)
+public function newEloquentBuilder($query): Builder
     {
-    	$key = Helper::camelCase($key);
-
-    	$n = "get" . ucfirst($key);
-
-    	if(method_exists($this, $n)){
-	       return $this->$n();
-        }else if(array_key_exists($key, $this->data)) {
-           return $this->data[$key];
-        }
-
-        $trace = debug_backtrace();
-        trigger_error(
-            'Undefined property via __get(): ' . $key .
-            ' in ' . $trace[0]['file'] .
-            ' on line ' . $trace[0]['line'],
-            E_USER_NOTICE);
-        return null;
-        
+        return new QueryBuilder($query);
     }
+
+  public function setSource($file_name){
+  	$this->source = $file_name;
+  	return $this;
+  }
+
+  public function getSource(){
+  	return $this->source;
+  }
+
+ 	 public function setSourceTable(){
+        $this->sourceTable = new Table($this->source);
+        return $this;
+    }
+
+    public function getSourceTable(){
+        if(!isset($this->sourceTable)){$this->setSourceTable();}
+        return $this->sourceTable;
+    }
+
+    public function t(){
+    	if(!isset($this->sourceTable)){$this->setSourceTable();}
+    	return $this->sourceTable;
+    }
+
+    public function graphql($args){
+        $result = static::query()->graphql($args);
+        return $result;
+    }
+
+    public static function query()
+    {
+        return (new static)->newQuery();
+    }
+
+    public function newQuery()
+    {
+        return $this->newEloquentBuilder(
+            $this->newBaseQueryBuilder()
+        )->setModel($this);
+    }
+
+     public function importAll(){
+		ini_set('memory_limit','3000M');
+
+		$this->table->open();
+		$this->table->importAll();
+		$this->table->close();
+		
+		return $this;
+
+    }
+
+    /**
+     * Get all of the models from the database.
+     *
+     * @param  array|string  $columns
+     * @return \Illuminate\Database\Eloquent\Collection<int, static>
+     */
+    public static function all($columns = ['*'])
+    {
+    	$x = new static;
+    	$x->setSourceTable();
+
+        return $x->query()->all(
+            is_array($columns) ? $columns : func_get_args()
+        );
+    }
+
 }

@@ -76,15 +76,15 @@ class Table {
     function open() {
 
         $this->isStream=strpos($this->name,"://")!==false;
-        $fn = $this->name;
         if (!$this->isStream) {
-            if (!file_exists($fn)) $fn = $this->name.".DBF";
-            if (!file_exists($fn)) $fn = $this->name.".dbf";
-            if (!file_exists($fn)) $fn = $this->name.".Dbf";
-            if (!file_exists($fn)) trigger_error ($this->name." cannot be found", E_USER_ERROR);
-        }
+            if (!file_exists($this->name)) {
+                dd($this);
+                trigger_error ('file' . $this->name." cannot be found", E_USER_ERROR);
+            }else{
+                //dd($this->name);
+            }
 
-        $this->name = $fn;
+        }
 
         if($this->writable){
             $this->read_write_options = "r+";

@@ -1,9 +1,9 @@
 <?php namespace Sreynoldsjr\ReynoldsDbf\Helpers;
 
-class Helper {
+class StringHelper {
 	
 	public static function camelCase($string){
-		$string = strtolower($string);
+		//$string = strtolower($string);
     	if(str_contains($string,"_")){
     		$array = explode('_',$string); 
     		$k = '';
