@@ -1,2 +1,2 @@
- vendor/bin/phpunit
- pause
+cd vendor/bin && phpunit
+pause

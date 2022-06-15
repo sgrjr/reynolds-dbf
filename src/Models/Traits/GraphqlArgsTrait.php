@@ -2,11 +2,13 @@
 
 trait GraphqlArgsTrait {
 
-    public function graphql($args = null){
+    public function graphql($args = []){
         //first,page,filter,directive
 
         if(isset($args["first"])){
             $this->parameters->setPerPage($args["first"]);
+        }else if(isset($args["perPage"])){
+            $this->parameters->setPerPage($args["perPage"]);
         }else{
             $this->parameters->setPerPage(10);
         }
@@ -40,4 +42,5 @@ trait GraphqlArgsTrait {
 
         return $this;
     }
+
 }

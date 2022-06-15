@@ -6,26 +6,8 @@ class DataResults {
 		$this->lists = [];
 	}
 
-	public function addRecord($record, $lists = false){
-		$this->data->push($record);
-
-		if($lists !== false){
-			foreach($lists AS $list){
-				
-				if($list === "CAT"){
-					$index = \App\Helpers\StringHelper::cleanKey($record[$list]);
-				}else{
-					$index = $record[$list];
-				}
-
-				$this->lists[$list][$index][] = $record;
-			}
-		}
-
-		if($lists !== false && isset($this->lists["PUBDATE"])){
-			krsort($this->lists["PUBDATE"]);
-		}
-		
+	public function addRecord($record){
+		$this->data->push($record);		
 		return $this;
 	}
 	

@@ -1,11 +1,5 @@
 <?php
 
-if(!function_exists('config') ){
-     function config($name){
-        return file_get_contents('../config/reynolds-dbf.php');
-     }
-}
-
 return [
     "root_paths" => [
         env("DBF_ROOT_PATH_RW",'C:\\resources\\data\\Stephen_Reynolds\\WEBINFO\\RWDATA'),
@@ -15,23 +9,21 @@ return [
     "find_dbfs" => false,
     
     "files" => [
-      "vendor"=> ["VENDOR.DBF",0],
-      "inventory"=> ["invent.DBF", 0],
+      "vendors"=> ["VENDOR.DBF",0],
+      "inventories"=> ["invent.DBF", 0],
       "users"=> ["password.dbf", 0],
-      "alldetail"=> ["alldetail.DBF", 1],
-      "allhead"=> ["allhead.DBF", 1],
-      "ancientdetail"=> ["ancientdetail.dbf", 1],
-      "ancienthead"=> ["ancienthead.DBF", 1],
-      "backdetail"=> ["backdetail.DBF", 1],
-      "backhead"=> ["backhead.DBF", 1],
-      "booktext"=> ["booktext.dbf", 1],
-      "brodetail"=> ["brodetail.DBF", 1],
-      "brohead"=> ["brohead.dbf", 1],
-      "passfile"=> ["passfile.DBF", 1],
-      "standing_order"=> ["standing.DBF", 1],
-      "webhead"=> ["webhead.DBF", 0],
-      "webdetail"=> ["webdetail.DBF", 0]
+      "alldetails"=> ["alldetail.DBF", 1],
+      "allheads"=> ["allhead.DBF", 1],
+      "ancientdetails"=> ["ancientdetail.dbf", 1],
+      "ancientheads"=> ["ancienthead.DBF", 1],
+      "backdetails"=> ["backdetail.DBF", 1],
+      "backheads"=> ["backhead.DBF", 1],
+      "booktexts"=> ["booktext.dbf", 1],
+      "brodetails"=> ["brodetail.DBF", 1],
+      "broheads"=> ["brohead.dbf", 1],
+      "passfiles"=> ["passfile.DBF", 1],
+      "standing_orders"=> ["standing.DBF", 1],
+      "webheads"=> ["webhead.DBF", 0],
+      "webdetails"=> ["webdetail.DBF", 0]
     ]
 ];
-
-

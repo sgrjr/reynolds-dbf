@@ -77,6 +77,15 @@ class QueryParameters {
 		return $this;
 	}
 
+	public function getTests(){
+		return $this->props->tests;
+	}
+
+	public function setSelect($values = []){
+		if($values){$this->props->selectColumns = array_merge($this->props->selectColumns, $values);}
+		return $this;
+	}
+
 	public function addTest($testValue){
 		$this->props->tests[] = $testValue;
 		return $this;

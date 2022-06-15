@@ -49,7 +49,7 @@ class ReynoldsDbf
 
     public static function query($query_string){
 
-        $q = json_decode('{"root":"webhead", "filters":[{"f":"KEY","o":"=","v":5}], "page":1, "perPage":5, "props":["KEY",{"root":"webdetail", "filters":[{"f":"ISCOMPLETE","o":"=","v":false}]}]}');
+        $q = json_decode('{"root":"webheads", "filters":[{"f":"KEY","o":"=","v":5}], "page":1, "perPage":5, "props":["KEY",{"root":"webdetail", "filters":[{"f":"ISCOMPLETE","o":"=","v":false}]}]}');
         
         $root = (new static)->model($q->root);
         
@@ -57,19 +57,17 @@ class ReynoldsDbf
 
         $data = [];
 
-        $root->table->open();
-
         //open the file to read the header
-        $root->table->open();
+        $root->t()->open();
 
         //iterate through the records
-        while ($record=$root->table->nextRecord()) { 
+        while ($record=$root->t()->nextRecord()) { 
             $data[]=$record->toArray();
             if(count($data) >= $limit){break;}
         }
 
         //close the file
-        $root->table->close();
+        $root->t()->close();
 
         return $data;
     }

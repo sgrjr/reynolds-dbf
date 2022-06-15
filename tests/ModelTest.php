@@ -1,6 +1,7 @@
 <?php namespace Sreynoldsjr\ReynoldsDbf\Test;
 
 use Sreynoldsjr\ReynoldsDbf\Models\Model;
+use Sreynoldsjr\ReynoldsDbf\Models\Webheads;
 use Sreynoldsjr\ReynoldsDbf\ReynoldsDbf;
 
 class ModelTest extends TestCase
@@ -16,18 +17,11 @@ class ModelTest extends TestCase
             $this->assertSame(count($model->columns) > 0, true);
         }
     }
-
+    
     public function testWebheadClass()
     {   
-        $model = ReynoldsDbf::model('webhead');
+        $model = ReynoldsDbf::model('webheads');
         $this->assertSame(count($model->columns) > 0, true);
-    }
-
-    public function testQueryFunctionClass()
-    {   
-        $query = '{"query": "query { echo(message: \"Hello World\") }" }';
-        $result = ReynoldsDbf::query($query);
-        $this->assertSame($result != null, true);
     }
 
 }

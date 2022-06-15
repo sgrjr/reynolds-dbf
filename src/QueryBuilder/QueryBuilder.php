@@ -4,6 +4,7 @@ use Sreynoldsjr\ReynoldsDbf\QueryBuilder\DataResults;
 use Sreynoldsjr\ReynoldsDbf\Helpers\Compare;
 use Sreynoldsjr\ReynoldsDbf\Helpers\StringHelper;
 use Sreynoldsjr\ReynoldsDbf\QueryBuilder\QueryParameters;
+use Sreynoldsjr\ReynoldsDbf\QueryBuilder\PaginatorInfo;
 use Sreynoldsjr\ReynoldsDbf\Interface\DbfQueryBuilderInterface;
 use Sreynoldsjr\ReynoldsDbf\Models\Table;
 use Illuminate\Database\Query\Builder as IlluminateQueryBuilder;
@@ -21,9 +22,12 @@ class QueryBuilder extends IlluminateQueryBuilder implements DbfQueryBuilderInte
 	private $data;
 	protected $children;
 	public $props;
+	public $database;
+	public $model;
 
-	public function __construct(IlluminateQueryBuilder $builder){
-
+	public function __construct($model, $database){
+		$this->model = $model;
+		$this->database =& $database;
 		$this->columns = false;
 		$this->writable = false;
 		$this->children = collect([]);
@@ -31,14 +35,7 @@ class QueryBuilder extends IlluminateQueryBuilder implements DbfQueryBuilderInte
 		$this->parameters = new QueryParameters();
 		$this->initData();
 	}
-
-	 /**
-     * Set the affected Eloquent model and instance ids.
-     *
-     * @param  class-string<TModel>  $model
-     * @param  array<int, int|string>|int|string  $ids
-     * @return $this
-     */
+  
     public function setModel($model, $ids = [])
     {
         $this->model = $model;
@@ -97,29 +94,9 @@ public function truncateRecords(){
 	$this->data->reset();
 	return $this;
 }
-
-public function addDataRecord($record, $isList = false, $lists = false){
-
-	if($isList){
-		foreach($record->toArray() AS $r){
-			$this->data->addRecord($record, $lists);
-		}
-	}else{
-		$this->data->addRecord($record, $lists);
-	}
-	
-	return $this;
-}
-
-public function updatePaginator($total, $lastIndex = false){
-	
-	    $this->data
-	    	->updatePaginator("currentPage", $this->parameters->page)
-			->updatePaginator("perPage", $this->parameters->perPage)
-			->updatePaginator("index", $lastIndex)
-			->updatePaginator("total", $total)
-			->done();
-	
+// $record is an array of values
+public function addDataRecord($record){
+	$this->data->addRecord($this->model->make($record));
 	return $this;
 }
 
@@ -130,7 +107,27 @@ public function updatePaginator($total, $lastIndex = false){
     public function all($columns=['*']) {
         $this->parameters->setPerPage(999999999);
         $this->parameters->setPage(1);
-        return $this->get(true);
+        return $this->get($columns);
+    }
+
+    public function last($columns=['*']) {
+        $this->parameters->setPerPage(1);
+        $this->parameters->setPage(1);
+        $this->parameters->setIndex($this->database->getRecordCount()-1);
+        return $this->get($columns)->last();
+    }
+
+    public function index($index, $columns = ['*']) {
+        $this->parameters->setPerPage(1);
+        $this->parameters->setPage(1);
+        $this->parameters->setIndex($index);
+        return $this->get($columns)->first();
+    }
+
+    public function first($columns = false){
+    	$this->parameters->setPerPage(1);
+        $this->parameters->setPage(1);
+        return $this->get($columns)->first();
     }
 
 	 public function convertComparison($comparison){
@@ -152,7 +149,7 @@ public function updatePaginator($total, $lastIndex = false){
     }
 
 	public function setColumns($columns = false){
-		$this->model->t()->open();
+		$this->database->open();
 		$this->props['columns'] = [];
 
 		if($columns !== false && count($columns) > 0){
@@ -361,55 +358,26 @@ public function find($primaryKeyValue, $columns = []){
 		->first();
 }
 
-public function index($index = 0, $columns = false){
 
-		$this->setColumns($columns);
+	public function setData($columns = ['*']){ 
 
-			$details = [];
-			$this->model->t()->open();
-			$this->model->t()->moveTo($index);
-			$record=$this->model->t()->getRecord();
+		ini_set('memory_limit','512M');
+		$this->parameters->setSelect($columns);
+        $this->database->open(); 
 
-    	foreach($this->columns AS $att){
+        if($this->parameters->index !== false){
+        	$record = $this->database->moveTo($this->parameters->index);
 
-        	if( in_array($att, $this->children) ){
-        		$fn = "get" . ucfirst(strtolower($att)) . "Connection";
-                $details[$att] = $this->$fn($record);
-
-        	}else{
-        		if($att == "SYNOPSIS"){
-        			$obj = $record->getColumns()[4];
-					$details[$att] = $record->getMemo($obj);
-
-				}else{
-					$details[$att] = $record->getObjectByName($att);
-				}
-        		
+        	// If a starting index was given, The limit is set to 1 and the record passes the tests
+        	// then add this record and RETURN out of this function. 
+        	$rd = $record->getData($this->parameters->ignoreColumns);
+        	if($this->parameters->limit() === 1 && $this->test($rd)){
+        		$this->addDataRecord($rd);
+        		return $this;
         	}
+        }   	
 
-    	}
-	   	$details["INDEX"] = $table->getRecordPos();
-	   	$details["DELETED"] = $record->isDeleted();
-	   	$table->close();
-	   	$this->addDataRecord($details);
-	   
-
-	   	if(count($this->data->records) >= 1){
-			return $this->data->records[0];
-	   	}
-	   	return $this->data->records;
-	}
-
-	public function setData(){ 
-
-		$startIndex = -1;	
-
-		 ini_set('memory_limit','512M');
-        \DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-
-        $this->model->t()->open();    	
-
-        while ($record=$this->model->t()->nextRecord() ) {
+        while ($record=$this->database->nextRecord() ) {
             $rd = $record->getData($this->parameters->ignoreColumns);
 
             if($this->test($rd) === true){
@@ -421,8 +389,7 @@ public function index($index = 0, $columns = false){
             }
         }
 
-        \DB::statement('SET FOREIGN_KEY_CHECKS=1;');
-        $this->model->t()->close();
+        $this->database->close();
 
         unset($dbf);
         unset($bag);
@@ -432,9 +399,14 @@ public function index($index = 0, $columns = false){
         return $this;
 	}
 	
-	public function get($loadToArray = false){
-		$this->setData();
-		return $this;		
+	public function get($columns = ["*"]){
+		$this->setData($columns);
+		return $this->data->data;		
+	}
+	//$perPage = 15, $columns = [...], $pageName = 'page', $page = null)
+	public function paginate($perPage = 15, $columns = [], $pageName = 'page', $page = null){ //not passing along $pageName for now
+		$this->page(1)->perPage(999999)->setData($columns);
+		return PaginatorInfo::get(["items"=>$this->data->data, "perPage"=>$perPage, "page"=> $page]);	
 	}
 
 	public function sortBy($field_name, $sort_type= 0){
@@ -457,28 +429,33 @@ public function index($index = 0, $columns = false){
 		return $this->data->data->pluck($column, $key);
 	}
 
-public function first($columns = false){
-
-	$this->parameters->setPerPage(1);
-
-	if(count($this->parameters->tests) < 1){
-		if($this->parameters->index < 0 || !$this->parameters->index){$this->parameters->index = 0;}
-		return $this->index($this->parameters->index, $columns);
-	}else{
-		$res = $this->get(true)->data;
-		if(isset($res[0])){
-			return $res[0];
-		}else{
-			return null;
-		}		
-	}
-	
-}
-
 	public function getCountForPagination($columns = ['*'])
     {
         return $this->data->count();
     }
 
+    //Parameters Convenience Functions
 
+    public function page(Int $page)
+    {
+    	$this->parameters->setPage($page);
+    	return $this;
+    }
+
+    public function perPage(Int $page)
+    {
+    	$this->parameters->setPerPage($page);
+    	return $this;
+    }
+    public function limit($limit)
+    {
+    	$this->parameters->setPage(1);
+    	$this->parameters->setPerPage($limit);
+    	return $this;
+    }
+
+    public function setIndex($index){
+    	$this->parameters->setIndex($index);
+    	return $this;
+    }
 }

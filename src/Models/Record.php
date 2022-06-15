@@ -26,7 +26,7 @@ class Record {
         $filler = " "; //used to be: chr(0); 
 
         if(is_array($rawData)){
-             foreach ($table->getColumns() as $column) {
+             foreach ($this->table->getColumns() as $column) {
                 if(isset($rawData[$column->getName()])){
                     $this->data[$column->getName()]=str_pad($rawData[$column->getName()],$column->getDataLength(),$filler);
                 }else{
@@ -327,6 +327,7 @@ class Record {
 
      function serialize(){
         $dataString = $this->deleted?"*":" ";
+
         foreach($this->data AS $key=>$record){
             if($key !== "INDEX" && $key !== "DELETED"){
                 $column = $this->table->getColumnByName($key);
@@ -338,7 +339,6 @@ class Record {
      }
 
      function save(){
-        $this->
         $this->table->save($this->getData());
         return $this;
      }

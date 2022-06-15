@@ -46,10 +46,8 @@ class Table {
     var $foxpro;
     var $deleteCount=0;
 
-    public function __construct ($name, $skipMemo = true, $writable = false) {
+    public function __construct ($name) {
         $this->name=$name;
-        $this->skipMemo = true;
-
         $this->types = new \stdclass;
         $this->types->DBFFIELD_TYPE_MEMO = "M";      // Memo type field.
         $this->types->DBFFIELD_TYPE_CHAR = "C";      // Character field.
@@ -60,8 +58,8 @@ class Table {
         $this->types->DBFFIELD_TYPE_DATETIME = "T";  // DateTime
         $this->types->DBFFIELD_TYPE_INDEX = "I";    // Index 
         $this->types->DBFFIELD_IGNORE_0 = "0";       // ignore this field
-        $this->writable = $writable;
         $this->fp = null;
+        $this->read_write_options = "r+";
         $this->init();
     }
 
@@ -78,18 +76,10 @@ class Table {
         $this->isStream=strpos($this->name,"://")!==false;
         if (!$this->isStream) {
             if (!file_exists($this->name)) {
-                dd($this);
                 trigger_error ('file' . $this->name." cannot be found", E_USER_ERROR);
             }else{
                 //dd($this->name);
             }
-
-        }
-
-        if($this->writable){
-            $this->read_write_options = "r+";
-        }else{
-            $this->read_write_options = "r";
         }
 
         $this->initDbf();
@@ -178,7 +168,7 @@ class Table {
             $this->columns[$i] = $column;
         }
 
-        /**/
+
         if ($this->foxpro) {
             $this->backlist=$this->readBytes(263);
         }
@@ -250,6 +240,7 @@ class Table {
         return $this->columnNames;
     }
     function getColumns() {
+        if($this->columns === null){$this->open(); $this->close();}
         return $this->columns;
     }
     function getColumn($index) {
@@ -271,6 +262,7 @@ class Table {
         return sizeof($this->columns);
     }
     function getRecordCount() {
+        if($this->recordCount === null){$this->open(); $this->close();}
         return $this->recordCount;
     }
 
@@ -348,12 +340,13 @@ class Table {
      }
 
     function write($value, $offset = false){
-        
+
         if($offset!= false) {
             $this->seek($offset);
         }
-   
-        $result = fwrite($this->fp,$value);
+
+        $result = fwrite($this->fp,$value); //file pointer INT
+
         fflush($this->fp);
 
         return $result;
@@ -443,6 +436,8 @@ class Table {
     // otherwise it will append a new record
 
     function save($attributes) {
+        $this->open();
+        
        if(isset($attributes["INDEX"]) && isset($attributes["INDEX"]) !== null){
         $attributes["INDEX"] = intval($attributes["INDEX"]);
         $this->moveTo($attributes["INDEX"]);
@@ -452,7 +447,7 @@ class Table {
 
         $this->record->copyFrom($attributes);
         $this->writeRecord();
-
+        $this->close();
        return $this->record->getData();
     }
 
@@ -474,7 +469,6 @@ class Table {
         }
 
         $offset = $this->headerLength+($this->record->recordIndex*$this->recordByteLength);
-
         $this->write($data, $offset);
 
         if ($this->record->inserted) {

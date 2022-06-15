@@ -4,10 +4,8 @@ namespace App\Ask;
 
 use PDO;
 use Illuminate\Support\Arr;
-use Illuminate\Database\Connectors\Connector;
-use Illuminate\Database\Connectors\ConnectorInterface;
 
-class DbfConnector extends Connector implements ConnectorInterface
+class DbfConnector
 {
     /**
      * The PDO connection options.
@@ -29,9 +27,9 @@ class DbfConnector extends Connector implements ConnectorInterface
      */
     public function connect(array $config)
     {
-        $options = $this->getOptions($config);
+        //$options = $this->getOptions($config);
 
-        return $this->createConnection($this->getDsn($config), $config, $options);
+        //return $this->createConnection($this->getDsn($config), $config, $options);
     }
 
     /**
@@ -71,7 +69,7 @@ class DbfConnector extends Connector implements ConnectorInterface
             $arguments, Arr::only($config, ['appname', 'charset'])
         );
 
-        return $this->buildConnectString('dblib', $arguments);
+        //return $this->buildConnectString('dblib', $arguments);
     }
 
     /**
@@ -95,7 +93,7 @@ class DbfConnector extends Connector implements ConnectorInterface
     protected function getOdbcDsn(array $config)
     {
         if (isset($config['odbc_datasource_name'])) {
-            return 'odbc:'.$config['odbc_datasource_name'];
+            //return 'odbc:'.$config['odbc_datasource_name'];
         }
 
         return '';
@@ -129,7 +127,7 @@ class DbfConnector extends Connector implements ConnectorInterface
             $arguments['ConnectionPooling'] = '0';
         }
 
-        return $this->buildConnectString('sqlsrv', $arguments);
+       // return $this->buildConnectString('sqlsrv', $arguments);
     }
 
     /**
@@ -142,10 +140,10 @@ class DbfConnector extends Connector implements ConnectorInterface
     protected function buildConnectString($driver, array $arguments)
     {
         $options = array_map(function ($key) use ($arguments) {
-            return sprintf('%s=%s', $key, $arguments[$key]);
+            //return sprintf('%s=%s', $key, $arguments[$key]);
         }, array_keys($arguments));
 
-        return $driver.':'.implode(';', $options);
+        //return $driver.':'.implode(';', $options);
     }
 
     /**
@@ -158,9 +156,9 @@ class DbfConnector extends Connector implements ConnectorInterface
     protected function buildHostString(array $config, $separator)
     {
         if (isset($config['port'])) {
-            return $config['host'].$separator.$config['port'];
+            //return $config['host'].$separator.$config['port'];
         } else {
-            return $config['host'];
+            //return $config['host'];
         }
     }
 
@@ -171,6 +169,6 @@ class DbfConnector extends Connector implements ConnectorInterface
      */
     protected function getAvailableDrivers()
     {
-        return PDO::getAvailableDrivers();
+        //return PDO::getAvailableDrivers();
     }
 }
