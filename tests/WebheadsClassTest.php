@@ -4,8 +4,8 @@ use Illuminate\Foundation\Testing\WithoutMiddleware;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 
-use Sreynoldsjr\ReynoldsDbf\Models\Inventories;
-
+use Sreynoldsjr\ReynoldsDbf\Models\Webheads;
+use Sreynoldsjr\ReynoldsDbf\ReynoldsDbf;
 /*
 assertTrue()
 assertFalse()
@@ -21,7 +21,7 @@ class WebheadsClassTest extends TestCase
 
     public function testWebheadClass()
     {   
-        $model = ReynoldsDbf::model('webheads');
+        $model = new Webheads();
         $this->assertSame(count($model->columns) > 0, true);
     }
     
@@ -33,7 +33,7 @@ class WebheadsClassTest extends TestCase
 
    public function testDeletingFromWebhead()
     {   
-        $model = Webheads::query()->last();
+        $model = Webheads::query()->asObject()->last();
         $this->assertSame($model->delete()->DELETED, true);
     }
 

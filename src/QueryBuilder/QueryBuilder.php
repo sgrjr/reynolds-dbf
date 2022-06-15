@@ -24,8 +24,10 @@ class QueryBuilder extends IlluminateQueryBuilder implements DbfQueryBuilderInte
 	public $props;
 	public $database;
 	public $model;
+	public $asObject;
 
-	public function __construct($model, $database){
+	public function __construct($model, $database, $asObject = false){
+		$this->asObject = $asObject;
 		$this->model = $model;
 		$this->database =& $database;
 		$this->columns = false;
@@ -36,6 +38,11 @@ class QueryBuilder extends IlluminateQueryBuilder implements DbfQueryBuilderInte
 		$this->initData();
 	}
   
+	public function asObject(){
+		$this->asObject = true;
+		return $this;
+	}
+
     public function setModel($model, $ids = [])
     {
         $this->model = $model;
@@ -96,7 +103,11 @@ public function truncateRecords(){
 }
 // $record is an array of values
 public function addDataRecord($record){
-	$this->data->addRecord($this->model->make($record));
+	$this->asObject ? 
+		$this->data->addRecord($this->model->make($record))
+		:
+		$this->data->addRecord($record); 
+
 	return $this;
 }
 
@@ -405,7 +416,7 @@ public function find($primaryKeyValue, $columns = []){
 	}
 	//$perPage = 15, $columns = [...], $pageName = 'page', $page = null)
 	public function paginate($perPage = 15, $columns = [], $pageName = 'page', $page = null){ //not passing along $pageName for now
-		$this->page(1)->perPage(999999)->setData($columns);
+		$this->page($page)->perPage($perPage)->setData($columns);
 		return PaginatorInfo::get(["items"=>$this->data->data, "perPage"=>$perPage, "page"=> $page]);	
 	}
 

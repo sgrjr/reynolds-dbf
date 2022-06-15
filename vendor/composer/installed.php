@@ -5,7 +5,7 @@
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
-        'reference' => 'f5f9144b1dad08c9073b90d59e5889fd6c5c41e5',
+        'reference' => 'fc78b497e456e117892a942c420a8b2fcd810bb2',
         'name' => 'sreynoldsjr/reynolds-dbf',
         'dev' => true,
     ),
@@ -470,12 +470,12 @@
             'dev_requirement' => true,
         ),
         'nuwave/lighthouse' => array(
-            'pretty_version' => 'v5.53.0',
-            'version' => '5.53.0.0',
+            'pretty_version' => 'v5.54.0',
+            'version' => '5.54.0.0',
             'type' => 'library',
             'install_path' => __DIR__ . '/../nuwave/lighthouse',
             'aliases' => array(),
-            'reference' => '1d6bfba264ae1ce68af84e1b97f50bd7ecd250b1',
+            'reference' => '58265a2a5f504e694c66d855ceb882eefe6e367a',
             'dev_requirement' => false,
         ),
         'orchestra/testbench' => array(
@@ -932,7 +932,7 @@
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
-            'reference' => 'f5f9144b1dad08c9073b90d59e5889fd6c5c41e5',
+            'reference' => 'fc78b497e456e117892a942c420a8b2fcd810bb2',
             'dev_requirement' => false,
         ),
         'symfony/console' => array(

@@ -213,6 +213,10 @@ public function graphql($args){
     return $this->builder->graphql($args);
 }
 
+public function asObject(){
+    return $this->builder->asObject();
+}
+
 public function last($columns = ['*']){
     return $this->builder->last($columns);
 }

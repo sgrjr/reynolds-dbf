@@ -21,35 +21,35 @@ class InventoriesClassTest extends TestCase
 
         public function testStaticFirstFunction()
     {
-        $inventory = Inventories::query()->where('INDEX',"==", 5)->first();
+        $inventory = Inventories::query()->asObject()->where('INDEX',"==", 5)->first();
         $this->assertEquals(5, $inventory->INDEX);
     }
 
 
     public function testStaticLastFunction()
     {
-        $inventory = Inventories::query()->last();
+        $inventory = Inventories::query()->asObject()->last();
         $this->assertGreaterThanOrEqual(9, $inventory->INDEX);
     }
 
     public function testGetDeletedRecords()
     { //THIS TEST IS FAILING and returning 
-        $inventory = Inventories::query()->where("DELETED","==", true)->limit(21)->get();
+        $inventory = Inventories::query()->asObject()->where("DELETED","==", true)->limit(21)->get();
         $this->assertEquals($inventory->first()->DELETED === true, true);
     }
 
    public function testStaticIndexFunction()
     {
-        $inventory = Inventories::index(88);
+        $inventory = Inventories::query()->asObject()->index(88);
         $this->assertEquals(88, $inventory->INDEX);
     }
-
 
    public function testPaginateFunction()
     {
         //$perPage = 15, $columns = [], $pageName = 'page', $page = null
-        $inventory = Inventories::query()->paginate(3,[],'page',2)['data']->first();
-        $this->assertEquals(true, $inventory->INDEX > 2);
+        $inventory = Inventories::query()->asObject()->paginate(3,[],'page',2);
+        $this->assertEquals(true, $inventory->first()->INDEX > 2);
+        $this->assertEquals(3, $inventory->first()->INDEX);
     }
 
         public function testStaticAllFunction()
@@ -63,10 +63,19 @@ class InventoriesClassTest extends TestCase
         $query = ["first"=> 1, "page"=> 1, "filter"=>[
             "INDEX" => ">_100"
         ]];
-        $result = Inventories::query()->graphql($query);
-
-
+        $result = Inventories::query()->asObject()->graphql($query);
         $this->assertSame($result->first()->INDEX, 101);
+    }
+
+    public function testGraphqlQueryPaginateFunction()
+    {   
+        $query = ["first"=> 1, "page"=> 1, "filter"=>[
+            "INDEX" => ">_100"
+        ]];
+
+        $result = Inventories::query()->graphql($query)->paginate($query["first"],[],'page',$query["page"]);
+        $item = $result->first();
+         $this->assertSame($item["INDEX"], 101);
     }
 
 }

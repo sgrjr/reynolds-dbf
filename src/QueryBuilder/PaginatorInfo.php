@@ -2,6 +2,7 @@
 
 use Sreynoldsjr\ReynoldsDbf\Models\Traits\MagicFunctionsTrait;
 use Illuminate\Database\Eloquent\Concerns\HasAttributes;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class PaginatorInfo {
 
@@ -37,7 +38,7 @@ class PaginatorInfo {
 		$data = $this->items->forPage($this->page, $this->perPage);
 
 		$this->total = $this->items->count();
-		$this->count = $data->count();
+		//$this->count = $data->count();
 		$this->firstItem = $data->first();
 		$this->lastItem = $data->last();
 		$this->hasMorePages = $this->page < $this->pages;
@@ -45,10 +46,24 @@ class PaginatorInfo {
 		$paginator = $this->getAttributes();
 		unset($paginator['items']);
 
+		$pagination = new LengthAwarePaginator(
+            $data,
+            $this->total,
+            $this->perPage,
+            $this->page,
+            [
+                'path' => "graphql",
+                'query' => "query",
+            ]
+        );
+
+        return $pagination;
+/*
 		return [
 			"paginatorInfo"=> $paginator,
 			"data"=> $data
 		];
+*/
 	}
 
 	// returns collection
