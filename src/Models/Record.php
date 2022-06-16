@@ -34,13 +34,13 @@ class Record {
                 }
             }
         }else if ($rawData && strlen($rawData)>0) {
-            $this->deleted_at=(ord($rawData)!="32")? now():null;
+            $this->deleted_at=(ord($rawData)!="32")? now()->toDateTimeString():false;
 
             foreach ($table->getColumns() as $column) {
                 $this->data[$column->getName()]=substr($rawData,$column->getBytePos(),$column->getDataLength());
             }
         } else {
-            $this->deleted_at = null;
+            $this->deleted_at = false;
             foreach ($table->getColumns() as $column) {
                 $this->data[$column->getName()]=str_pad("", $column->getDataLength(),$filler);
             }
@@ -51,7 +51,8 @@ class Record {
     }
 
     function isDeleted() {
-        return $this->deleted_at != null || $this->deleted_at != false;
+        if(!isset($this->deleted_at) || $this->deleted_at === null || $this->deleted_at === false) return false;
+        return true;
     }
 
     function getColumns() {
@@ -340,25 +341,26 @@ class Record {
         return $dataString;
      }
 
-     function save(){
-        $this->table->save($this->getData());
-        return $this;
-     }
-
     function delete(){
-        $this->setDeleted(now());
-        $this->table->save($this->getData());
+        $this->setDeleted(now()->toDateTimeString());
         return $this;
      }
 
-    function unDelete(){
+    function restore(){
         $this->setDeleted(false);
-        $this->table->save($this->getData());
         return $this;
+     }
+    
+    function unDelete(){
+       return $this->restore();
      }
 
      function json(){
         return json_encode($this->getData());
+     }
+
+     function toJson(){
+        return $this->json();
      }
 
      function toArray(){
@@ -446,7 +448,7 @@ class Record {
         }
         
         $data["INDEX"] = (Int) $this->getRecordIndex();
-        $data["deleted_at"] = $this->isDeleted()? now():null;
+        $data["deleted_at"] = $this->isDeleted()? now()->toDateTimeString():null;
 
         foreach($skipFields AS $sf){
             unset($data[$sf]);

@@ -67,6 +67,10 @@ class QueryParameters {
 		return $this;
 	}
 
+	public function getIndex(){
+		return $this->props->index;
+	}
+
 	public function setParameter($parameterName, $parameterValue){
 		$this->props->$parameterName = $parameterValue;
 		return $this;

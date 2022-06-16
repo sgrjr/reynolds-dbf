@@ -18,28 +18,12 @@ trait DbfModelTrait {
         return (new static($attributes))->dbf();
     }
 
-    public function dbfDelete()
-    {
-        $this->deleted_at = now();
-        $result = $this->dbf()->save();
-        if($result){$this->save();}
-        return true;
+    public function fromDbf(){
+        $class = "\\Sreynoldsjr\\ReynoldsDbf\\Models\\".ucfirst($this->getTable());
+        return $class::query()->asObject()->where('INDEX',"==",$this->INDEX)->first();
     }
 
- public function dbfSave()
-    {
-        $table = $this->dbf();
-        $table->open();
-        $atttributes_from_dbf = $table->save($this->toArray());
-        $table->close();
-        $this->update($atttributes_from_dbf);
-        return $this;
-    }
-
-public static function dbfCreate(){
-    dd("Ask Trait line 56 not implemented.");
-}
-
+    
 public static function dbfUpdateOrCreate($graphql_root, $attributes, $request=false, $x=false, $user=false) {
     $isNewEntry = true;
 
@@ -123,17 +107,17 @@ public static function dbfUpdateOrCreate($graphql_root, $attributes, $request=fa
      }
      return $user;
 }
-public function fillAttributes($user = false){return $this;}
 
-public function setIfNotSet($key, $val, $force = false, $func_arg = false){
 
-    if($force || !isset($this->$key) || $this->$key === null || $this->$key === false){
-        if(method_exists($this,$val)){
-            $this->$key = $this->$val($func_arg);
-        }else{
-            $this->$key = $val;
+    public function setIfNotSet($key, $val, $force = false, $func_arg = false){
+
+        if($force || !isset($this->$key) || $this->$key === null || $this->$key === false){
+            if(method_exists($this,$val)){
+                $this->$key = $this->$val($func_arg);
+            }else{
+                $this->$key = $val;
+            }
         }
+        return $this;
     }
-    return $this;
-}
 }

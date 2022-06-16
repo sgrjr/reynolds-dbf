@@ -27,14 +27,20 @@ class WebheadsClassTest extends TestCase
     
     public function testWritingNewToWebhead()
     {   
-        $model = Webheads::create(["REMOTEADDR"=>"888238848832833"]);
-        $this->assertSame($model->REMOTEADDR ===  "888238848832833", true);
+        $model = Webheads::create(["REMOTEADDR"=>"66666666666"]);
+        $this->assertSame($model->REMOTEADDR ===  "66666666666", true);
     }
 
-   public function testDeletingFromWebhead()
+   public function test_deleting_from_webhead()
     {   
-        $model = Webheads::query()->asObject()->last();
-        $this->assertSame($model->delete()->isDeleted(), true);
+        $model = Webheads::query()->asObject()->first();
+        $this->assertSame($model->delete()->trashed(), true);
+    }
+
+    public function test_restoring_from_webhead()
+    {   
+        $model = Webheads::query()->asObject()->first();
+        $this->assertSame($model->restore()->trashed(), false);
     }
 
 }

@@ -3,6 +3,7 @@
 use Sreynoldsjr\ReynoldsDbf\Models\Column; 
 use Sreynoldsjr\ReynoldsDbf\Models\Memo; 
 use Sreynoldsjr\ReynoldsDbf\Models\Record; 
+Use Exception;
 /**
 *
 * This class provides the main entry to a DBF table file.
@@ -70,8 +71,22 @@ class Table {
     public function __destruct() {
         $this->close();
     }
+
+    public function isAvailable(){
+       if(file_exists($this->name)){
+            try {
+                $this->open();
+                return $this->isOpen();
+            }
+
+            catch(Exception $e){
+                return false;
+            }
+       }
+       return false;
+    }
     
-    function open() {
+    public function open() {
 
         $this->isStream=strpos($this->name,"://")!==false;
         if (!$this->isStream) {
@@ -451,6 +466,24 @@ class Table {
        }
 
         $this->record->copyFrom($attributes);
+        $this->writeRecord();
+        $this->close();
+       return $this->record->getData();
+    }
+
+    function restore($index) {
+        $this->open();
+        $this->moveTo($index);
+        $this->record->restore();
+        $this->writeRecord();
+        $this->close();
+       return $this->record->getData();
+    }
+
+     function delete($index) {
+        $this->open();
+        $this->moveTo($index);
+        $this->record->delete();
         $this->writeRecord();
         $this->close();
        return $this->record->getData();

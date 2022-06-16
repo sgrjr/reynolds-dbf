@@ -129,6 +129,8 @@ public function addDataRecord($record){
     }
 
     public function findByIndex($index, $columns = ['*']) {
+
+    	if($index == null) return null;
         $this->parameters->setPerPage(1);
         $this->parameters->setPage(1);
         $this->parameters->setIndex($index);

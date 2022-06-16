@@ -31,6 +31,7 @@ class Model {
     public $sourceTable;
     public $timestamps = false;
     protected $columns = [];
+    protected $relations = [];
     public $builder = null;
 
     /**
@@ -214,7 +215,8 @@ public function graphql($args){
 }
 
 public function asObject(){
-    return $this->builder->asObject();
+    $this->builder->asObject();
+    return $this;
 }
 
 public function last($columns = ['*']){
@@ -242,7 +244,7 @@ public function paginate($perPage = 15, $columns = [], $pageName = 'page', $page
 
 public function where($field, $operator, $value)
 {
-    $this->builder->setIndex(false)->where($field, $operator, $value);
+    $this->builder->where($field, $operator, $value);
     return $this;
 }
 
@@ -264,9 +266,9 @@ public function perPage(Int $page)
     return $this;
 }
 
-public static function findByIndex($index, $columns = ['*'])
+public function findByIndex($index, $columns = ['*'])
 {
-    return (new static)->builder->findByIndex($index, $columns);
+    return $this->builder->findByIndex($index, $columns);
 }
 
 public function save(array $options = []){
@@ -303,14 +305,19 @@ public static function make($attributes = []){
 }
 
 public function delete(){
-   $this->database->open();
-   $result = $this->database->moveTo($this->INDEX)->delete()->getData();
-   $this->database->close();
-    
-    foreach($result AS $key=>$att){
+   $record = $this->database->delete($this->INDEX);
+   return $this->copyFrom($record);
+}
+
+public function restore(){
+   $record = $this->database->restore($this->INDEX);
+   return $this->copyFrom($record);
+}
+
+public function copyFrom($attributes){
+     foreach($attributes AS $key=>$att){
         $this->$key = $att;
     }
-
     return $this;
 }
 
@@ -335,11 +342,26 @@ public function usesTimestamps()
 }
 
 public static function query(){
-    return new static;
+    $model = new static;
+    $model->builder->setIndex(false);
+    return $model;
 }
 
 public function isDeleted(){
     return $this->deleted_at != null || $this->deleted_at != false;
+}
+
+public function trashed(){
+    return $this->isDeleted();
+}
+
+public function isAvailable(){
+    return $this->database->isAvailable();
+}
+
+public function relationLoaded($key)
+{
+    return array_key_exists($key, $this->relations);
 }
 
 }
