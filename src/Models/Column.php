@@ -132,7 +132,7 @@ class Column extends \ArrayObject {
             "PROD_NO" => 14,
             "ISBN" => 14,
             "INDEX" => 12,
-            "DELETED" => 1, 
+            "deleted_at" => 32, 
             "FDATE" => 12,
             "REMOTEADDR" => 20,
             "TRANSNO" => 20,

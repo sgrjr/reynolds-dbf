@@ -270,6 +270,11 @@ public static function index($index, $columns = ['*'])
     return (new static)->builder->index($index, $columns);
 }
 
+public static function findByIndex($index, $columns = ['*'])
+{
+    return static::index($index, $columns);
+}
+
 public function save(array $options = []){
     //not sure how to implement the $options array yet
     $result = $this->database->save($this->attributes);
@@ -279,6 +284,10 @@ public function save(array $options = []){
     }
 
     return $this;
+}
+
+public static function count(){
+    return (new static)->database->count();
 }
 
 public static function saveMany(array $items = []){
@@ -333,6 +342,10 @@ public function usesTimestamps()
 
 public static function query(){
     return new static;
+}
+
+public function isDeleted(){
+    return $this->deleted_at != null || $this->deleted_at != false;
 }
 
 }

@@ -34,7 +34,7 @@ class WebheadsClassTest extends TestCase
    public function testDeletingFromWebhead()
     {   
         $model = Webheads::query()->asObject()->last();
-        $this->assertSame($model->delete()->DELETED, true);
+        $this->assertSame($model->delete()->isDeleted(), true);
     }
 
 }

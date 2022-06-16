@@ -10,12 +10,17 @@ use Sreynoldsjr\ReynoldsDbf\Events\ExistingDbfEntryUpdated;
 trait DbfModelTrait {
 
     public function dbf(){
-        return ReynoldsDbf::model($this->getTable());
+        $class = "\\Sreynoldsjr\\ReynoldsDbf\\Models\\".ucfirst($this->getTable());
+        return new $class($this->attributes);
+    }
+
+    public static function x($attributes = []){
+        return (new static($attributes))->dbf();
     }
 
     public function dbfDelete()
     {
-        $this->DELETED = true;
+        $this->deleted_at = now();
         $result = $this->dbf()->save();
         if($result){$this->save();}
         return true;

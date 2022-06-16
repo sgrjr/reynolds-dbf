@@ -147,7 +147,7 @@ class Compare
                             //getting errors that deleted is not set
                             // so disabling this check for now
                             // may never need it if original query to dbf only saves NONDELETED entries
-			    			$tests = true;//!$record["DELETED"];
+			    			$tests = true; // $record["deleted_at"] != null; //true;//!$record["deleted_at"];
 			    			
 			    		}else{
 			    			$tests = false;

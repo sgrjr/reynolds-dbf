@@ -47,7 +47,7 @@ class Record {
         }
 
         if(!isset($this->data["INDEX"])){$this->data["INDEX"] = $this->recordIndex;}
-        if(!isset($this->data["DELETED"])){$this->data["DELETED"] = $this->deleted;}
+        if(!isset($this->data["deleted_at"])){$this->data["deleted_at"] = $this->deleted;}
     }
 
     function isDeleted() {
@@ -193,7 +193,7 @@ class Record {
      * -------------------------------------------------------------------------
      **/
 	function copyFrom($record) {
-        $ignore_columns = ["index","INDEX","deleted","DELETED"];
+        $ignore_columns = ["index","INDEX","deleted_at"];
 
         foreach ($record as $i=>$v) {
 
@@ -207,10 +207,11 @@ class Record {
             }
 
         }
-        if(isset($record["DELETED"])){
-            $this->setDeleted($record["DELETED"]);
+        if(isset($record["deleted_at"])){
+            $this->setDeleted($record["deleted_at"]);
         }        
 	}
+
     function setDeleted($b) {
        	$this->deleted=$b;
     }
@@ -329,7 +330,7 @@ class Record {
         $dataString = $this->deleted?"*":" ";
 
         foreach($this->data AS $key=>$record){
-            if($key !== "INDEX" && $key !== "DELETED"){
+            if($key !== "INDEX" && $key !== "deleted_at"){
                 $column = $this->table->getColumnByName($key);
                 $dataString .= str_pad($record, $column->getDataLength()," "); //use to be chr(0)
             }
@@ -344,7 +345,13 @@ class Record {
      }
 
     function delete(){
-        $this->setDeleted(true);
+        $this->setDeleted(now());
+        $this->table->save($this->getData());
+        return $this;
+     }
+
+    function unDelete(){
+        $this->setDeleted(false);
         $this->table->save($this->getData());
         return $this;
      }
@@ -438,7 +445,7 @@ class Record {
         }
         
         $data["INDEX"] = (Int) $this->getRecordIndex();
-        $data["DELETED"] = $this->isDeleted();
+        $data["deleted_at"] = $this->isDeleted()? now():null;
 
         foreach($skipFields AS $sf){
             unset($data[$sf]);

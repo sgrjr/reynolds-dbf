@@ -267,6 +267,7 @@ class Table {
     }
 
     function count() {
+        if($this->recordCount === null){$this->open(); $this->close();}
         return $this->recordCount;
     }
 

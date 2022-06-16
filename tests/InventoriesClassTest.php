@@ -33,9 +33,9 @@ class InventoriesClassTest extends TestCase
     }
 
     public function testGetDeletedRecords()
-    { //THIS TEST IS FAILING and returning 
-        $inventory = Inventories::query()->asObject()->where("DELETED","==", true)->limit(21)->get();
-        $this->assertEquals($inventory->first()->DELETED === true, true);
+    { 
+        $inventory = Inventories::query()->asObject()->where("deleted_at","!=", null)->limit(21)->get();
+        $this->assertEquals($inventory->first()->deleted_at != null, true);
     }
 
    public function testStaticIndexFunction()
