@@ -1,5 +1,7 @@
 <?php namespace Sreynoldsjr\ReynoldsDbf\Models\Traits;
 
+use Config;
+
 trait HeadTrait {
 
 	public function getDetailsUrlAttribute(){

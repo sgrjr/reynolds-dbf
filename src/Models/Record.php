@@ -11,11 +11,11 @@ class Record {
     var $zerodate = 0x253d8c;
     var $table;
     var $data;
-    var $deleted;
+    var $deleted_at;
     var $recordIndex;
     var $inserted;
     
- public function __construct($table, $recordIndex, $rawData, $deleted=false, $inserted = false) {
+ public function __construct($table, $recordIndex, $rawData, $deleted_at=null, $inserted = false) {
 
         $this->table =& $table;        
         $this->rawData = $rawData;
@@ -34,25 +34,26 @@ class Record {
                 }
             }
         }else if ($rawData && strlen($rawData)>0) {
-            $this->deleted=(ord($rawData)!="32");
+            $this->deleted_at=(ord($rawData)!="32")? now():null;
 
             foreach ($table->getColumns() as $column) {
                 $this->data[$column->getName()]=substr($rawData,$column->getBytePos(),$column->getDataLength());
             }
         } else {
-            $this->deleted=false;
+            $this->deleted_at = null;
             foreach ($table->getColumns() as $column) {
                 $this->data[$column->getName()]=str_pad("", $column->getDataLength(),$filler);
             }
         }
 
         if(!isset($this->data["INDEX"])){$this->data["INDEX"] = $this->recordIndex;}
-        if(!isset($this->data["deleted_at"])){$this->data["deleted_at"] = $this->deleted;}
+        if(!isset($this->data["deleted_at"])){$this->data["deleted_at"] = $this->deleted_at;}
     }
 
     function isDeleted() {
-        return $this->deleted? true:false;
+        return $this->deleted_at != null || $this->deleted_at != false;
     }
+
     function getColumns() {
         return $this->table->getColumns();
     }
@@ -213,7 +214,7 @@ class Record {
 	}
 
     function setDeleted($b) {
-       	$this->deleted=$b;
+       	$this->deleted_at=$b;
     }
     function setStringByName($columnName,$value) {
         $this->setString($this->table->getColumnByName($columnName),$value);
@@ -327,7 +328,7 @@ class Record {
      **/
 
      function serialize(){
-        $dataString = $this->deleted?"*":" ";
+        $dataString = $this->isDeleted()?"*":" ";
 
         foreach($this->data AS $key=>$record){
             if($key !== "INDEX" && $key !== "deleted_at"){

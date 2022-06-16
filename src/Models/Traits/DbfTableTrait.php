@@ -1,5 +1,7 @@
 <?php namespace Sreynoldsjr\ReynoldsDbf\Models\Traits;
 
+use Config;
+
 trait DbfTableTrait {
 
 	public function getDbfPrimaryKey(){

@@ -184,6 +184,10 @@ class Table {
         return is_resource($this->fp);
     }
 
+    function isClosed() {
+        return !is_resource($this->fp);
+    }
+
     function close() {
      if($this->isOpen()){
         fflush($this->fp);

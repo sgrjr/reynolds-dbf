@@ -128,7 +128,7 @@ public function addDataRecord($record){
         return $this->get($columns)->last();
     }
 
-    public function index($index, $columns = ['*']) {
+    public function findByIndex($index, $columns = ['*']) {
         $this->parameters->setPerPage(1);
         $this->parameters->setPage(1);
         $this->parameters->setIndex($index);
@@ -352,10 +352,6 @@ public function orderByRaw($sql, $bindings = []){
 public function setPage($pageValue){
 	$this->parameters->page = $pageValue;
 	return $this;
-}
-
-public function findByIndex($index, $columns = false){
-	return $this->index($index, $columns);
 }
 
 public function find($primaryKeyValue, $columns = []){

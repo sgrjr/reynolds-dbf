@@ -196,7 +196,7 @@ class Model {
 
 public function __construct(array $attributes = []){
     $this->attributes = $attributes;
-	$file = \Config::get('reynolds-dbf.files')[$this->getTable()];
+	$file = config('reynolds-dbf.files')[$this->getTable()];
     $this->database = new Table(config('reynolds-dbf.root_paths')[$file[1]] . DIRECTORY_SEPARATOR . $file[0]);
     $this->builder = new QueryBuilder($this, $this->database);
 }
@@ -264,15 +264,9 @@ public function perPage(Int $page)
     return $this;
 }
 
-
-public static function index($index, $columns = ['*'])
-{
-    return (new static)->builder->index($index, $columns);
-}
-
 public static function findByIndex($index, $columns = ['*'])
 {
-    return static::index($index, $columns);
+    return (new static)->builder->findByIndex($index, $columns);
 }
 
 public function save(array $options = []){

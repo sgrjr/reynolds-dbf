@@ -40,7 +40,7 @@ class InventoriesClassTest extends TestCase
 
    public function testStaticIndexFunction()
     {
-        $inventory = Inventories::query()->asObject()->index(88);
+        $inventory = Inventories::query()->asObject()->findByIndex(88);
         $this->assertEquals(88, $inventory->INDEX);
     }
 
