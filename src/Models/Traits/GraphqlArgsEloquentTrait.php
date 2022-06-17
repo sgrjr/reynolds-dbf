@@ -16,7 +16,7 @@ trait GraphqlArgsEloquentTrait {
             $page = 1;
         }
 
-        $this->orderBy('id','DESC');
+        $this = $this->orderBy('id','DESC');
 
             if(isset($args["filter"])){
                 foreach($args["filter"] AS $key=>$v){
@@ -34,7 +34,7 @@ trait GraphqlArgsEloquentTrait {
                     if($val === "FALSE"){$val = false;}
                     if($val === "false"){$val = false;}
 
-                    $this->where($key,$f[0],$val);
+                    $this = $this->where($key,$f[0],$val);
                 }
 
             }
