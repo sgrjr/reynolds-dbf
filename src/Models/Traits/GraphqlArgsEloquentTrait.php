@@ -38,7 +38,7 @@ trait GraphqlArgsEloquentTrait {
             }
 
         }
-        if($first === 1 && $page === 1){return $query->first();}
+
         return $query;
     }
 }
