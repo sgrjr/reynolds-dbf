@@ -2,9 +2,9 @@
 
 trait GraphqlArgsEloquentTrait {
 
-    public function graphql($args = []){
+    public static function graphql($args = []){
 
-         $query = $this->orderBy('id','DESC');
+        $query = new static;
 
         if(isset($args["first"])){
             $first = $args["first"];
@@ -23,7 +23,7 @@ trait GraphqlArgsEloquentTrait {
                 if(strpos($v, "_") !== false){
                     $f = explode("_",$v,2);
                 } else{
-                    $f[0]="==";
+                    $f[0]="=";
                     $f[1]=$v;
                 }
                 
@@ -34,11 +34,15 @@ trait GraphqlArgsEloquentTrait {
                 if($val === "FALSE"){$val = false;}
                 if($val === "false"){$val = false;}
 
-                $query->where($key,$f[0],$val);
+                if($val === null){
+                  $query = $query->whereNull($key);
+                }else{
+                  $query = $query->where($key,$f[0],$val);
+                }
+                
             }
 
         }
-
-        return $query;
+            return $query;
     }
 }
