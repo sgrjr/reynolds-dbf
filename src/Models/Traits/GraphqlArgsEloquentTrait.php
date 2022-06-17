@@ -2,7 +2,7 @@
 
 trait GraphqlArgsEloquentTrait {
 
-    public function graphql($args = null){
+    public function graphql($args = []){
 
         if(isset($options["first"])){
             $first = $options["first"];
@@ -16,7 +16,7 @@ trait GraphqlArgsEloquentTrait {
             $page = 1;
         }
 
-        $model = (new static())->orderBy('id','DESC');
+        $this->orderBy('id','DESC');
 
             if(isset($args["filter"])){
                 foreach($args["filter"] AS $key=>$v){
@@ -34,11 +34,11 @@ trait GraphqlArgsEloquentTrait {
                     if($val === "FALSE"){$val = false;}
                     if($val === "false"){$val = false;}
 
-                    $model->where($key,$f[0],$val);
+                    $this->where($key,$f[0],$val);
                 }
 
             }
 
-        return $model;
+        return $this;
     }
 }
