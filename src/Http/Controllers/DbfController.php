@@ -1,4 +1,4 @@
-<?php namespace App\Http\Controllers;
+<?php namespace Sreynoldsjr\ReynoldsDbf\Http\Controllers;
 
 
 use Illuminate\Routing\Controller;
