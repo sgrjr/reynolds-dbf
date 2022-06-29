@@ -471,6 +471,10 @@ class Table {
        return $this->record->getData();
     }
 
+    function make($attributes) {
+       return new Record($this, $this->recordCount,$attributes, false, true);
+    }
+
     function restore($index) {
         $this->open();
         $this->moveTo($index);
