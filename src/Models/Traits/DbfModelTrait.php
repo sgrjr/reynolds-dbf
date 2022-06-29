@@ -14,6 +14,10 @@ trait DbfModelTrait {
         return new $class($this->attributes);
     }
 
+    public function serialize(){
+        return $this->dbf()->database->make($this->attributes)->serialize();
+    }
+
     public static function x($attributes = []){
         return (new static($attributes))->dbf();
     }
