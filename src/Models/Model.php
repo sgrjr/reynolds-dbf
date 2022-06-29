@@ -282,6 +282,10 @@ public function save(array $options = []){
     return $this;
 }
 
+public function toArray(){
+    return $this->attributes;
+}
+
 public static function count(){
     return (new static)->database->count();
 }
