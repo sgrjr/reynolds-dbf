@@ -429,7 +429,6 @@ class Record {
                     case 'J':
                     case '1':
                     case 1:
-                    case true:
                         $val = "T";
                         break;
                     
