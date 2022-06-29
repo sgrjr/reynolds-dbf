@@ -427,8 +427,8 @@ class Record {
                         $val = true;
                         break;
         
-                    default: 
-                        $val = false;
+                    default:
+                        $val = null;
                 }
             }
 
