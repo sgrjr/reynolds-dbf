@@ -264,7 +264,7 @@ class Column extends \ArrayObject {
             "D" => "Date", //D  -   -   Date
             "G" => "Blob", //G  -   -   General
             "I" => "Integer", //I   -   -   Index
-            "L" => "TinyInt", //L   -   -   Logical - ? Y y N n T t F f (? when not initialized).
+            "L" => "Char", //L   -   -   Logical - ? Y y N n T t F f (? when not initialized). //TinyInt makes more sense for MYSQL but less sense for FoxPro which does not use 0 or 1 but uses F or T
             "M" => "Text", //M  -   -   Memo
             "N" => "Decimal", //N   N   d   Numeric field of width n with d decimal places
             "T" => "Datetime", //T  -   -   DateTime,

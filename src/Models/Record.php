@@ -429,9 +429,16 @@ class Record {
                     case 'J':
                     case '1':
                     case 1:
-                        $val = true;
+                    case true:
+                        $val = "T";
                         break;
-        
+                    
+                    case false:
+                    case 'F':
+                    case 'f':
+                        $val = "F";
+                        break;
+
                     default:
                         $val = null;
                 }
