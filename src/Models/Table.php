@@ -458,7 +458,7 @@ class Table {
     function save($attributes) {
         $this->open();
         
-       if(isset($attributes["INDEX"]) && isset($attributes["INDEX"]) !== null){
+       if(isset($attributes["INDEX"]) && $attributes["INDEX"] !== null && $attributes["INDEX"] !== ""){
         $attributes["INDEX"] = intval($attributes["INDEX"]);
         $this->moveTo($attributes["INDEX"]);
        }else{
