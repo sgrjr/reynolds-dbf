@@ -108,7 +108,6 @@ public static function dbfUpdateOrCreate($graphql_root, $attributes, $request=fa
      return $user;
 }
 
-
     public function setIfNotSet($key, $val, $force = false, $func_arg = false){
 
         if($force || !isset($this->$key) || $this->$key === null || $this->$key === false){
@@ -120,4 +119,5 @@ public static function dbfUpdateOrCreate($graphql_root, $attributes, $request=fa
         }
         return $this;
     }
+    
 }

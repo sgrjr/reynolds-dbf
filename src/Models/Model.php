@@ -364,4 +364,22 @@ public function relationLoaded($key)
     return array_key_exists($key, $this->relations);
 }
 
+public static function loop($callback, $startIndex=-1, $limit=1){
+    $ctr = 0;
+    $db = (new static)->database;
+    $db->open();
+
+    $db->moveTo($startIndex);
+
+    //iterate through the records
+    while ($record=$db->nextRecord()) { 
+       $callback($record);
+        $ctr++;
+        if($ctr >= $limit){break;}
+    }
+
+    //close the file
+    $db->close();
+}
+
 }

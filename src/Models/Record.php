@@ -457,4 +457,8 @@ class Record {
          return $data;
      }
 
+     public function __get($prop){
+        return $this->data[$prop];
+     }
+
 }
