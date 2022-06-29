@@ -283,7 +283,9 @@ public function save(array $options = []){
 }
 
 public function toArray(){
-    return $this->attributes;
+    $x = $this->attributes;
+    unset($x['database']);
+    return $x;
 }
 
 public static function count(){
