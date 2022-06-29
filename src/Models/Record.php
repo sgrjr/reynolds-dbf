@@ -328,13 +328,14 @@ class Record {
      * -------------------------------------------------------------------------
      **/
 
-     function serialize(){
+     function serialize($delimit = false){
         $dataString = $this->isDeleted()?"*":" ";
 
         foreach($this->data AS $key=>$record){
             if($key !== "INDEX" && $key !== "deleted_at"){
                 $column = $this->table->getColumnByName($key);
                 $dataString .= str_pad($record, $column->getDataLength()," "); //use to be chr(0)
+                if($delimit) $dataString .= "|";
             }
         }
 
