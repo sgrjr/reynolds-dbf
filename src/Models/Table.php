@@ -263,9 +263,9 @@ class Table {
         $result = false;
 
         if($this->record === null){
-            $this->open(); 
+            if(!$this->isOpen()) $this->open(); 
             $result = $this->moveTo(1); 
-            $this->close();
+            if($this->isOpen()) $this->close(); 
         }else{
             $result = $this->record;
         }
@@ -276,6 +276,7 @@ class Table {
         if($this->columns === null){$this->open(); $this->close();}
         return $this->columns;
     }
+    
     function getColumn($index) {
         if(isset($this->columns[$index])){
             return $this->columns[$index];

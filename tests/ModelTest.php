@@ -30,4 +30,20 @@ class ModelTest extends TestCase
         $this->assertSame(count($model->columns) > 0, true);
     }
 
+    public function testVendorMetaClass()
+    {   
+        $model = ReynoldsDbf::model('vendors');
+        $m = $model->asObject()->where("INDEX","==",0)->first();
+
+        $m->database->getMeta();
+        $this->assertSame(count($model->columns) > 0, true);
+    }
+
+    public function testNewVendorMetaClass()
+    {   
+        $model = ReynoldsDbf::model('vendors');
+        $attributes = ["KEY"=>99999954];
+        $m = $model->database->make($attributes);
+        $this->assertSame(count($m->meta()) > 0, true);
+    }
 }
