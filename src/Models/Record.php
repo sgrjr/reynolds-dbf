@@ -386,7 +386,7 @@ class Record {
             if($key !== "INDEX" && $key !== "deleted_at"){
                 $column = $this->table->getColumnByName($key);
                 if($delimit) $dataString .= ",'";
-                $dataString .= str_pad(trim($record), $column->getDataLength()," ",STR_PAD_LEFT); //use to be chr(0)
+                $dataString .= str_pad(trim($record->value), $column->getDataLength()," ",STR_PAD_LEFT); //use to be chr(0)
                 if($delimit) $dataString .= "'";
             }
         }
