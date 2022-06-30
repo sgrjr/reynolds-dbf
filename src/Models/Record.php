@@ -41,10 +41,12 @@ class Record {
         if(is_array($rawData)){
              foreach ($this->table->getColumns() as $column) {
                 if(isset($rawData[$column->getName()])){
-                    $this->data[$column->getName()]=str_pad($rawData[$column->getName()],$column->getDataLength(),$filler, STR_PAD_LEFT);
+                    $value = str_pad($rawData[$column->getName()],$column->getDataLength(),$filler, STR_PAD_LEFT);                
                 }else{
-                    $this->data[$column->getName()]=str_pad("", $column->getDataLength(),$filler,STR_PAD_LEFT);
+                    $value = str_pad("", $column->getDataLength(),$filler,STR_PAD_LEFT);
                 }
+
+                $this->data[$column->getName()] = DataEntry::make($value, $column->getType(), $column->getDataLength(), true);
             }
         }else if ($rawData && strlen($rawData)>0) {
             $this->deleted_at=(ord($rawData)!="32")? now()->toDateTimeString():false;
