@@ -263,7 +263,9 @@ class Table {
         $result = false;
 
         if($this->record === null){
-            $this->open(); $result = $this->moveTo(0); $this->close();
+            $this->open(); 
+            $result = $this->moveTo(1); 
+            $this->close();
         }else{
             $result = $this->record;
         }
