@@ -260,8 +260,14 @@ class Table {
     }
     
     function getMeta(){
-        if($this->record === null){$this->open(); $this->moveTo(0); $this->close();}
-        return $this->getRecord()->meta();
+        $result = false;
+
+        if($this->record === null){
+            $this->open(); $result = $this->moveTo(0); $this->close();
+        }else{
+            $result = $this->record;
+        }
+        return $result->meta();
     }
 
     function getColumns() {
