@@ -26,7 +26,6 @@ trait DbfModelTrait {
         $class = "\\Sreynoldsjr\\ReynoldsDbf\\Models\\".ucfirst($this->getTable());
         return $class::query()->asObject()->where('INDEX',"==",$this->INDEX)->first();
     }
-
     
 public static function dbfUpdateOrCreate($graphql_root, $attributes, $request=false, $x=false, $user=false) {
     $isNewEntry = true;

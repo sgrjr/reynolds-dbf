@@ -258,6 +258,12 @@ class Table {
     function getColumnNames() {
         return $this->columnNames;
     }
+    
+    function getMeta(){
+        if($this->record === null){$this->open(); $this->moveTo(0); $this->close();}
+        return $this->getRecord()->meta();
+    }
+
     function getColumns() {
         if($this->columns === null){$this->open(); $this->close();}
         return $this->columns;
