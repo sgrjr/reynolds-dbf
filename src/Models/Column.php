@@ -3,7 +3,12 @@
 * This class represents a DBF column
 * Do not construct an instance yourself, it's useless that way.
 **/
+
+use Sreynoldsjr\ReynoldsDbf\Models\Traits\GlobalFieldTypesTrait;
+
 class Column extends \ArrayObject {
+
+    use GlobalFieldTypesTrait;
 
     var $name;
     var $rawname;
@@ -16,6 +21,7 @@ class Column extends \ArrayObject {
     var $indexed;
     var $bytePos;
     var $colIndex;
+    var $types;
     private $container = array();
 
     public function __construct(
@@ -46,9 +52,11 @@ class Column extends \ArrayObject {
         $this->bytePos=$bytePos;
         $this->colIndex=$colIndex;
 
+        $this->types = $this->getGlobalFieldTypes();
+
         $this->container = [
             "name"=>$this->getName(),
-            "length"=>$this->getLength(),
+            "length"=>$this->getDataLength(),
             "type"=>$this->getType(),
             "decimal_count" => $this->getDecimalCount(),
             "mysql_type"=>$this->getMySQLType(),
@@ -88,11 +96,12 @@ class Column extends \ArrayObject {
         return $this->length;
     }
     function getDataLength() {
+
 	    switch ($this->type) {
-            case $this->table->types->DBFFIELD_TYPE_DATE : return 8;
-            case $this->table->types->DBFFIELD_TYPE_DATETIME : return 8;
-            case $this->table->types->DBFFIELD_TYPE_LOGICAL : return 1;
-            case $this->table->types->DBFFIELD_TYPE_MEMO : return 10;
+            case $this->types->DBFFIELD_TYPE_DATE : return 8;
+            case $this->types->DBFFIELD_TYPE_DATETIME : return 8;
+            case $this->types->DBFFIELD_TYPE_LOGICAL : return 1;
+            case $this->types->DBFFIELD_TYPE_MEMO : return 10;
             default : return $this->length;
 	    }
     }
@@ -254,7 +263,7 @@ class Column extends \ArrayObject {
             return $h;
 	}
 
-    private function getMySQLType(){
+    public function getMySQLType(){
        
         $types = [
             "B" => "Double",
@@ -265,8 +274,8 @@ class Column extends \ArrayObject {
             "G" => "Blob", //G  -   -   General
             "I" => "Integer", //I   -   -   Index
             "L" => "Char", //L   -   -   Logical - ? Y y N n T t F f (? when not initialized). //TinyInt makes more sense for MYSQL but less sense for FoxPro which does not use 0 or 1 but uses F or T
-            "M" => "Text", //M  -   -   Memo
-            "N" => "Decimal", //N   N   d   Numeric field of width n with d decimal places
+            "M" => "Binary", //M  -   -   Memo
+            "N" => "Int", //N   N   d   Numeric field of width n
             "T" => "Datetime", //T  -   -   DateTime,
             "0" => "IGNORE" //// ignore this field
         ];

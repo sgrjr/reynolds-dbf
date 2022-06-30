@@ -7,15 +7,39 @@
 **/
 
 class DataEntry{
-    public function __construct($value, $type, $length, $original = true){
+    public function __construct($name, $value, $type, $length, $decimal_count, $mysql_type, $original = true){
+        $this->name = $name;
+
+        if(str_contains($value,"\xE9")) $value = str_replace("\xE9","e",$value);
+
         $this->value = $value;
         $this->type = $type;
         $this->length = $length;
         $this->original = $original;
+        $this->nullable = true;
+        $this->decimal_count = $decimal_count;
+        $this->mysql_type = $mysql_type;
     }
 
-    public static function make($value, $type, $length, $original = true){
-        return new static($value, $type, $length, $original);
+    public static function make($name, $value, $type, $length, $decimal_count, $mysql_type, $original = true){
+        return new static($name, $value, $type, $length, $decimal_count, $mysql_type, $original);
+    }
+
+    public static function makeWithColumn($value, $col, $original = true){
+        return static::make($col->getName(), $value, $col->getType(), $col->getDataLength(), $col->getDecimalCount(), $col->getMySQLType(), $original);
+    }
+
+    public function toArray(){
+        return [
+            'name' => $this->name,
+            'value' => $this->value,
+            'type' => $this->type,
+            'length' => $this->length,
+            'original' => $this->original,
+            'nullable' => $this->nullable,
+            'decimal_count' => $this->decimal_count,
+            'mysql_type' => $this->mysql_type
+        ];
     }
 }
 
@@ -39,17 +63,20 @@ class Record {
         $filler = " "; //used to be: chr(0); 
 
         if(is_array($rawData)){
+
+             $this->deleted_at = $rawData["deleted_at"] == "0"? null:$rawData["deleted_at"];
+
              foreach ($this->table->getColumns() as $column) {
                 if(isset($rawData[$column->getName()])){
-                    $value = str_pad($rawData[$column->getName()],$column->getDataLength(),$filler, STR_PAD_LEFT);                
+                    $value = $rawData[$column->getName()]; //str_pad($rawData[$column->getName()],$column->getDataLength(),$filler, STR_PAD_LEFT);                
                 }else{
-                    $value = str_pad("", $column->getDataLength(),$filler,STR_PAD_LEFT);
+                    $value = "";// str_pad("", $column->getDataLength(),$filler,STR_PAD_LEFT);
                 }
 
-                $this->data[$column->getName()] = DataEntry::make($value, $column->getType(), $column->getDataLength(), true);
+                $this->data[$column->getName()] = DataEntry::makeWithColumn($value, $column, true);
             }
         }else if ($rawData && strlen($rawData)>0) {
-            $this->deleted_at=(ord($rawData)!="32")? now()->toDateTimeString():false;
+            $this->deleted_at=(ord($rawData)!="32")? null:now()->toDateTimeString();
 
             foreach ($table->getColumns() as $column) {
                 $value = substr($rawData,$column->getBytePos(),$column->getDataLength());
@@ -58,21 +85,23 @@ class Record {
         } else {
             $this->deleted_at = false;
             foreach ($table->getColumns() as $column) {
-                $val=str_pad("", $column->getDataLength(),$filler, STR_PAD_LEFT);
-                $this->data[$column->getName()] = DataEntry::make($val, $column->getType(), $column->getDataLength(), true);
+                $val= ""; //str_pad("", $column->getDataLength(),$filler, STR_PAD_LEFT);
+                $this->data[$column->getName()] = DataEntry::makeWithColumn($val, $column, true);
             }
         }
         
         $this->initData();
 
+        //dd($this->data["PROMOTIONS"]);
+
     }
 
     function initData(){
         if(!isset($this->data["INDEX"])){
-            $this->data["INDEX"] = DataEntry::make($this->getRecordIndex(), "Char", 15, false);
+            $this->data["INDEX"] = DataEntry::make('INDEX',$this->getRecordIndex(), "C", 15, 0, "Char", false);
         }
         if(!isset($this->data["deleted_at"])){
-            $this->data["deleted_at"] = DataEntry::make($this->deleted_at, "Char", 19, false);
+            $this->data["deleted_at"] = DataEntry::make('deleted_at',$this->deleted_at, "C", 19, 0, "Char", false);
         }
     }
 
@@ -82,7 +111,7 @@ class Record {
         }else if($column->name === "UPASS"){
             $this->transformPassword($column,$value);
         }else{
-            $this->data[$column->getName()] = DataEntry::make($value, $column->getType(), $column->getDataLength(), true);
+            $this->data[$column->getName()] = DataEntry::makeWithColumn($value, $column, true);
         }
 
     }
@@ -90,18 +119,27 @@ class Record {
     function transformMemo($column, $value){
         $val = unpack("L", $value)[1];
         $val = $this->table->memo->getMemo($val)["text"];
-        $this->data[$column->getName()] = DataEntry::make($value, 'BINARY', $column->getDataLength(), true);
-        $this->data[$column->getName() . '_MEMO'] = DataEntry::make($val, 'TEXT', $column->getDataLength(), false);
+                                                    
+        $this->data[$column->getName()] = DataEntry::makeWithColumn($value, $column, true);
+        $this->data[$column->getName() . '_MEMO'] = DataEntry::make($column->getName().'_MEMO',$val, 'C', $column->getDataLength(), 0, 'TEXT', false);
     }
 
     function transformPassword($column, $value){
-       $this->data[$column->getName()] = DataEntry::make($value, $column->getType(), $column->getDataLength());
-    $this->data["password"] = DataEntry::make(\Hash::make($value), $column->getType(), $column->getDataLength(), false);           
+       $this->data[$column->getName()] = DataEntry::makeWithColumn($value, $column, true);
+       $this->data["password"] = DataEntry::make('password',\Hash::make($value), $column->getType(), $column->getDataLength(), 0, "Char", false);           
     }
 
     function isDeleted() {
-        if(!isset($this->deleted_at) || $this->deleted_at === null || $this->deleted_at === false) return false;
-        return true;
+        if(is_string($this->rawData)){
+            return ord($this->rawData)!="32";
+        }else{
+            $da = $this->rawData["deleted_at"];
+            if($da != null && $da != 0 && $da != "0"){
+                return true;
+            }else{
+                return false;
+            }
+        }
     }
 
     function getColumns() {
@@ -382,6 +420,7 @@ class Record {
         $dataString = '';
         if($delimit) $dataString .= "'";
         $dataString .= $this->isDeleted()?"*":" ";
+
         if($delimit) $dataString .= "'";
 
         foreach($this->data AS $key=>$record){
@@ -431,8 +470,20 @@ class Record {
         return $data;
     }
 
-    function meta(){
-        return $this->data;
+    function meta($toArray = false){
+
+        if($toArray){
+            $x = [];
+
+            foreach($this->data AS $data){
+                $x[$data->name] = $data->toArray();
+            }
+
+            return $x;
+        }else{
+            return $this->data;
+        }
+        
     }
 
      public function __get($prop){

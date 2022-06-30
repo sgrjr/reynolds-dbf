@@ -4,6 +4,7 @@ use Sreynoldsjr\ReynoldsDbf\Models\Column;
 use Sreynoldsjr\ReynoldsDbf\Models\Memo; 
 use Sreynoldsjr\ReynoldsDbf\Models\Record; 
 Use Exception;
+
 /**
 *
 * This class provides the main entry to a DBF table file.
@@ -49,16 +50,6 @@ class Table {
 
     public function __construct ($name) {
         $this->name=$name;
-        $this->types = new \stdclass;
-        $this->types->DBFFIELD_TYPE_MEMO = "M";      // Memo type field.
-        $this->types->DBFFIELD_TYPE_CHAR = "C";      // Character field.
-        $this->types->DBFFIELD_TYPE_NUMERIC = "N";   // Numeric
-        $this->types->DBFFIELD_TYPE_FLOATING = "F";  // Floating point
-        $this->types->DBFFIELD_TYPE_DATE = "D";      // Date
-        $this->types->DBFFIELD_TYPE_LOGICAL = "L";   // Logical - ? Y y N n T t F f (? when not initialized).
-        $this->types->DBFFIELD_TYPE_DATETIME = "T";  // DateTime
-        $this->types->DBFFIELD_TYPE_INDEX = "I";    // Index 
-        $this->types->DBFFIELD_IGNORE_0 = "0";       // ignore this field
         $this->fp = null;
         $this->read_write_options = "r+";
         $this->init();
@@ -259,24 +250,24 @@ class Table {
         return $this->columnNames;
     }
     
-    function getMeta(){
+    function getMeta($toArray = false){
         $result = false;
 
-        if($this->record === null){
+        if($this->record === null || $this->record === false){
             if(!$this->isOpen()) $this->open(); 
-            $result = $this->moveTo(1); 
+            $result = $this->moveTo(1);
             if($this->isOpen()) $this->close(); 
         }else{
             $result = $this->record;
         }
-        return $result->meta();
+        return $result->meta($toArray);
     }
 
     function getColumns() {
         if($this->columns === null){$this->open(); $this->close();}
         return $this->columns;
     }
-    
+
     function getColumn($index) {
         if(isset($this->columns[$index])){
             return $this->columns[$index];
