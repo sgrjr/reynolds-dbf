@@ -12,7 +12,6 @@ class ModelTest extends TestCase
      */
     public function testWebheadModelColumnsClass()
     {   
-
         foreach(ReynoldsDbf::all() AS $model){
             $this->assertSame(count($model->columns) > 0, true);
         }
@@ -21,6 +20,13 @@ class ModelTest extends TestCase
     public function testWebheadClass()
     {   
         $model = ReynoldsDbf::model('webheads');
+        $this->assertSame(count($model->columns) > 0, true);
+    }
+
+    public function testVendorClass()
+    {   
+        $model = ReynoldsDbf::model('vendors');
+        $m = $model->asObject()->where("INDEX","==",0)->first();
         $this->assertSame(count($model->columns) > 0, true);
     }
 

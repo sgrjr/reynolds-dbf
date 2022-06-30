@@ -288,6 +288,14 @@ public function toArray(){
     return $x;
 }
 
+public function meta(){
+    if (!$this->database->isOpen()) $this->database->open();
+    $record = $this->database->moveTo($this->attributes['INDEX']);
+    $meta = $record->meta();
+    if ($this->database->isOpen()) $this->database->close();
+    return $meta;
+}
+
 public static function count(){
     return (new static)->database->count();
 }

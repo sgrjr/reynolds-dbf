@@ -6,6 +6,19 @@
 *
 **/
 
+class DataEntry{
+    public function __construct($value, $type, $length, $original = true){
+        $this->value = $value;
+        $this->type = $type;
+        $this->length = $length;
+        $this->original = $original;
+    }
+
+    public static function make($value, $type, $length, $original = true){
+        return new static($value, $type, $length, $original);
+    }
+}
+
 class Record {
 
     var $zerodate = 0x253d8c;
@@ -28,26 +41,60 @@ class Record {
         if(is_array($rawData)){
              foreach ($this->table->getColumns() as $column) {
                 if(isset($rawData[$column->getName()])){
-                    $this->data[$column->getName()]=str_pad($rawData[$column->getName()],$column->getDataLength(),$filler);
+                    $this->data[$column->getName()]=str_pad($rawData[$column->getName()],$column->getDataLength(),$filler, STR_PAD_LEFT);
                 }else{
-                    $this->data[$column->getName()]=str_pad("", $column->getDataLength(),$filler);
+                    $this->data[$column->getName()]=str_pad("", $column->getDataLength(),$filler,STR_PAD_LEFT);
                 }
             }
         }else if ($rawData && strlen($rawData)>0) {
             $this->deleted_at=(ord($rawData)!="32")? now()->toDateTimeString():false;
 
             foreach ($table->getColumns() as $column) {
-                $this->data[$column->getName()]=substr($rawData,$column->getBytePos(),$column->getDataLength());
+                $value = substr($rawData,$column->getBytePos(),$column->getDataLength());
+                $this->transform($column, $value);
             }
         } else {
             $this->deleted_at = false;
             foreach ($table->getColumns() as $column) {
-                $this->data[$column->getName()]=str_pad("", $column->getDataLength(),$filler);
+                $val=str_pad("", $column->getDataLength(),$filler, STR_PAD_LEFT);
+                $this->data[$column->getName()] = DataEntry::make($val, $column->getType(), $column->getDataLength(), true);
             }
         }
+        
+        $this->initData();
 
-        if(!isset($this->data["INDEX"])){$this->data["INDEX"] = $this->recordIndex;}
-        if(!isset($this->data["deleted_at"])){$this->data["deleted_at"] = $this->deleted_at;}
+    }
+
+    function initData(){
+        if(!isset($this->data["INDEX"])){
+            $this->data["INDEX"] = DataEntry::make($this->getRecordIndex(), "Char", 15, false);
+        }
+        if(!isset($this->data["deleted_at"])){
+            $this->data["deleted_at"] = DataEntry::make($this->deleted_at, "Char", 19, false);
+        }
+    }
+
+    function transform($column, $value){
+        if($column->getType() === "M"){
+            $this->transformMemo($column,$value);
+        }else if($column->name === "UPASS"){
+            $this->transformPassword($column,$value);
+        }else{
+            $this->data[$column->getName()] = DataEntry::make($value, $column->getType(), $column->getDataLength(), true);
+        }
+
+    }
+
+    function transformMemo($column, $value){
+        $val = unpack("L", $value)[1];
+        $val = $this->table->memo->getMemo($val)["text"];
+        $this->data[$column->getName()] = DataEntry::make($value, 'BINARY', $column->getDataLength(), true);
+        $this->data[$column->getName() . '_MEMO'] = DataEntry::make($val, 'TEXT', $column->getDataLength(), false);
+    }
+
+    function transformPassword($column, $value){
+       $this->data[$column->getName()] = DataEntry::make($value, $column->getType(), $column->getDataLength());
+    $this->data["password"] = DataEntry::make(\Hash::make($value), $column->getType(), $column->getDataLength(), false);           
     }
 
     function isDeleted() {
@@ -329,6 +376,7 @@ class Record {
      **/
 
      function serialize($delimit = false){
+
         $dataString = '';
         if($delimit) $dataString .= "'";
         $dataString .= $this->isDeleted()?"*":" ";
@@ -373,100 +421,17 @@ class Record {
      }
 
     function getData($skipFields = [], $skipMemo = true) {
-
         $data = [];
-        //$convert_to_valid_utf8 = ['ICOLLNOTE','CUSTNOTE','ACCTNOTE','ACOLLNOTE','ENOTE','SYNOPSIS'];
 
-        ini_set('mbstring.substitute_character', 32);
-
-        foreach($this->data AS $key=>$value){
-                
-            $col = $this->getColumn($key);
-
-            if($col === false && $key === "INDEX"){
-                $val = (int) $value;
-            }else if($col && $col['type'] === "M"){
-                $val = unpack("L", $value)[1];
-                $val = trim($this->table->memo->getMemo($val)["text"]);
-            }else{
-                $val = trim($value);
-            }
-
-            if($val === ""){
-                $val = null;
-            }
-
-            $modify_list = ["C"];
-
-            if($col && in_array($col->getType(), $modify_list) ){
-                $val = utf8_encode(trim($val));
-            }
-
-            if($col && $col->getType() === "" ){
-                $val = utf8_encode(trim($val));
-            }else if($col && $col->getType() === "N"){
-                if (!is_numeric($val)){
-                    $val = null;
-                }else if($val < 0){
-                    if($key == "DISC"){
-                        $val = trim($val) * -1;
-                        if($val > 0){
-                            $val = round($val/1000,$col->decimalCount);
-                        }
-                    }else{
-                        $val = null;
-                    }
-                }else{
-                    $val = round($val,$col->decimalCount);
-                }
-            } else if($col && $col->getType() === "I" && !is_numeric($val)){
-                $val = null;
-            }else if($col && $col->getType() === "L" ){
-                
-                switch ($value) {
-                    case 'T':
-                    case 'Y':
-                    case 'J':
-                    case '1':
-                    case 1:
-                        $val = "T";
-                        break;
-                    
-                    case false:
-                    case 'F':
-                    case 'f':
-                        $val = "F";
-                        break;
-
-                    default:
-                        $val = null;
-                }
-            }
-
-            if($val === "" ){$val = null;}
-
-           // if(in_array($col->name, $convert_to_valid_utf8))$val = mb_convert_encoding($val, 'UTF-8', 'UTF-8');
-            
-            if($col && $col->name === "UPASS"){
-              $data[$col->name] =  \Hash::make($val);
-              $data["user_pass_unsafe"] = $val;
-            }else if($col){
-                $data[$col->name] = $val;
-            }else{
-                $data[$key] = $val;
-            }
-            
+        foreach($this->data AS $k=>$d){
+            $data[$k] = $d->value;
         }
-        
-        $data["INDEX"] = (Int) $this->getRecordIndex();
-        $data["deleted_at"] = $this->isDeleted()? now()->toDateTimeString():null;
+        return $data;
+    }
 
-        foreach($skipFields AS $sf){
-            unset($data[$sf]);
-        }
-
-         return $data;
-     }
+    function meta(){
+        return $this->data;
+    }
 
      public function __get($prop){
         return $this->data[$prop];
