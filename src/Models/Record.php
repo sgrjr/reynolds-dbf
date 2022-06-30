@@ -383,7 +383,7 @@ class Record {
         if($delimit) $dataString .= "'";
 
         foreach($this->data AS $key=>$record){
-            if($key !== "INDEX" && $key !== "deleted_at"){
+            if($key !== "INDEX" && $key !== "deleted_at" && $record->original){
                 $column = $this->table->getColumnByName($key);
                 if($delimit) $dataString .= ",'";
                 $dataString .= str_pad(trim($record->value), $column->getDataLength()," ",STR_PAD_LEFT); //use to be chr(0)
