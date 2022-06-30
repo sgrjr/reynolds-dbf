@@ -434,7 +434,7 @@ class Record {
     }
 
      public function __get($prop){
-        return $this->data[$prop];
+        return $this->data[$prop]->value;
      }
 
 }
