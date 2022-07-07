@@ -1,6 +1,7 @@
 <?php namespace Sreynoldsjr\ReynoldsDbf\Console\Commands;
 
 use Illuminate\Console\Command;
+use \Sreynoldsjr\ReynoldsDbf\ReynoldsDbf;
 
 class Install extends Command
 {
@@ -16,7 +17,7 @@ class Install extends Command
      *
      * @var string
      */
-    protected $description = 'Creates and Seeds Database Tables from DBFs.';
+    protected $description = 'Create all Tables from related DBF.';
 
     /**
      * Execute the console command.
@@ -25,6 +26,8 @@ class Install extends Command
      */
     public function handle()
     {
-        $this->comment(PHP_EOL."JUST A TEST 2".PHP_EOL);
+        $this->comment(PHP_EOL."Creating All Database Tables from DBFS...".PHP_EOL);
+        ReynoldsDbf::install();
+        $this->comment(PHP_EOL."Creating all tables complete.".PHP_EOL);
     }
 }

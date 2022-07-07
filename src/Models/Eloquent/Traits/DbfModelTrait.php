@@ -1,4 +1,4 @@
-<?php namespace Sreynoldsjr\ReynoldsDbf\Models\Traits;
+<?php namespace Sreynoldsjr\ReynoldsDbf\Models\Eloquent\Traits;
 
 use Sreynoldsjr\ReynoldsDbf\ReynoldsDbf;
 use Illuminate\Support\Arr;
@@ -15,7 +15,7 @@ trait DbfModelTrait {
     }
 
     public function serialize($delimit = false){
-        return $this->dbf()->database->make($this->attributes)->serialize($delimit);
+        return $this->dbf()->database()->make($this->attributes)->serialize($delimit);
     }
 
     public static function x($attributes = []){
@@ -110,17 +110,5 @@ public static function dbfUpdateOrCreate($graphql_root, $attributes, $request=fa
      }
      return $user;
 }
-
-    public function setIfNotSet($key, $val, $force = false, $func_arg = false){
-
-        if($force || !isset($this->$key) || $this->$key === null || $this->$key === false){
-            if(method_exists($this,$val)){
-                $this->$key = $this->$val($func_arg);
-            }else{
-                $this->$key = $val;
-            }
-        }
-        return $this;
-    }
     
 }

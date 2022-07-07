@@ -1,4 +1,5 @@
-<?php namespace Sreynoldsjr\ReynoldsDbf\Models\Traits;
+<?php namespace Sreynoldsjr\ReynoldsDbf\Models\Eloquent\Traits;
+
 trait DetailTrait {
 
 	public function getQtyAttribute(){

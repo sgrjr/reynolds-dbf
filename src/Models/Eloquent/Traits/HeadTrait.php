@@ -1,6 +1,9 @@
-<?php namespace Sreynoldsjr\ReynoldsDbf\Models\Traits;
+<?php namespace Sreynoldsjr\ReynoldsDbf\Models\Eloquent\Traits;
 
 use Config;
+
+use Sreynoldsjr\ReynoldsDbf\Models\Eloquent\Webhead;
+use Sreynoldsjr\ReynoldsDbf\Models\Eloquent\Backhead;
 
 trait HeadTrait {
 
@@ -71,7 +74,7 @@ trait HeadTrait {
 
 		switch(get_class($this)){
 
-			case 'App\Models\Webhead':
+			case Webhead::class:
 
 				if($this->ISCOMPLETE){
 					$invoiceTitle="Processing";
@@ -80,7 +83,7 @@ trait HeadTrait {
 				}
 				break;
 
-			case 'App\Models\Backhead':
+			case Backhead::class:
 				$invoiceTitle="Back Ordered";
 				break;
 			default:

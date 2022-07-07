@@ -4,6 +4,12 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Blade;
 use Sreynoldsjr\ReynoldsDbf\View\Components\FooterComponent;
 use Sreynoldsjr\ReynoldsDbf\Console\Commands\Install;
+use Sreynoldsjr\ReynoldsDbf\Console\Commands\CreateTable;
+use Sreynoldsjr\ReynoldsDbf\Console\Commands\DropTable;
+use Sreynoldsjr\ReynoldsDbf\Console\Commands\EmptyTable;
+use Sreynoldsjr\ReynoldsDbf\Console\Commands\SeedTable;
+use Sreynoldsjr\ReynoldsDbf\Console\Commands\UpdateTable;
+use Sreynoldsjr\ReynoldsDbf\Console\Commands\BuildUserCache;
 use Sreynoldsjr\ReynoldsDbf\ReynoldsDbf;
 
 class ReynoldsDbfServiceProvider extends ServiceProvider
@@ -34,7 +40,13 @@ class ReynoldsDbfServiceProvider extends ServiceProvider
 
         if ($this->app->runningInConsole()) {
             $this->commands([
-                Install::class
+                Install::class,
+                CreateTable::class,
+                DropTable::class,
+                EmptyTable::class,
+                UpdateTable::class,
+                SeedTable::class,
+                BuildUserCache::class
             ]);
         }
     }

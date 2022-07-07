@@ -7,7 +7,7 @@ class DataResults {
 	}
 
 	public function addRecord($record){
-		$this->data->push($record);		
+		if($record !== null) $this->data->push($record);		
 		return $this;
 	}
 	
@@ -18,7 +18,6 @@ class DataResults {
 
 	//This method does not map exactly to the eloquent version
 	//a check must be made when using as it has a different architecture
-
 	public function orderByRaw(String $field, $list){
 		/*$this->data->sortKeysUsing(function($a, $b){
 			$a = preg_replace('@^(a|an|the) @', '', $a);

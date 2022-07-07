@@ -3,6 +3,7 @@
 use Sreynoldsjr\ReynoldsDbf\Models\Model;
 use Sreynoldsjr\ReynoldsDbf\Models\Webheads;
 use Sreynoldsjr\ReynoldsDbf\ReynoldsDbf;
+use Sreynoldsjr\ReynoldsDbf\Models\Ancientdetails;
 
 class ModelTest extends TestCase
 {
@@ -35,7 +36,7 @@ class ModelTest extends TestCase
         $model = ReynoldsDbf::model('vendors');
         $m = $model->asObject()->where("INDEX","==",0)->first();
 
-        $m->database->getMeta();
+        $m->database()->getMeta();
         $this->assertSame(count($model->columns) > 0, true);
     }
 
@@ -43,7 +44,8 @@ class ModelTest extends TestCase
     {   
         $model = ReynoldsDbf::model('vendors');
         $attributes = ["KEY"=>99999954];
-        $m = $model->database->make($attributes);
+        $m = $model->database()->make($attributes);
         $this->assertSame(count($m->meta()) > 0, true);
     }
+
 }

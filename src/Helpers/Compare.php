@@ -69,14 +69,30 @@ class Compare
    protected static function greater_than_equal($op1,$op2){return $op1 >= $op2;}
   protected static function not_equal($op1,$op2){return $op1 !== $op2;}
 
-  protected static function like($op1,$op2){
-    
+  protected static function like($op1,$op2){ //$op1=model value , $op2=value to be compared by
+
+    $op2 = str_replace("%", "", $op2);
+    $op2 = str_replace("+", " ", $op2);
+    $answer = false;
+
+      if (strpos(strtolower($op1), strtolower($op2)) !== false) {
+        $answer = true;
+      }
+
+    return $answer;
+
+  }
+
+
+
+  protected static function _OLDlike($op1,$op2){ //$op1=model value , $op2=value to be compared by
+
     $op2 = str_replace("%", "", $op2);
     $op2 = str_replace("+", " ", $op2);
 
     $words = explode(" ", $op2);
     $answer = false;
-    
+
     foreach($words AS $w){
       if (strpos(strtolower($op1), strtolower($w)) !== false) {
         $answer = true;
@@ -88,28 +104,26 @@ class Compare
 
   }
 
-    protected static function unlike($op1,$op2){
-    
-    $words = explode(" ", $op2);
-    $answer = true;
-    
-    foreach($words AS $w){
-      if (strpos(strtolower($op1), strtolower($w)) !== false) {
-        $answer = false;
-        break;
+  protected static function unlike($op1,$op2){ //$op1=model value , $op2=value to be compared by
+
+    $op2 = str_replace("%", "", $op2);
+    $op2 = str_replace("+", " ", $op2);
+    $answer = false;
+
+      if (strpos(strtolower($op1), strtolower($op2)) === false) {
+        $answer = true;
       }
-    }
 
     return $answer;
 
   }
 
   protected static function is_null($op1,$op2){
-    return is_null($op1);
+    return is_null(trim($op1));
   }
 
   protected static function is_not_null($op1,$op2){
-    return !is_null($op1);
+    return !is_null(trim($op1));
   }
 
   public static function test($record, $parameters){
@@ -143,7 +157,7 @@ class Compare
 	    					}
 						}
 
-						if(isset($record[$s[0]]) && Compare::is($record[$s[0]], $s[1], $s[2])){
+						if(isset($record[$s[0]]) && Compare::is($record[$s[0]], $s[1], trim($s[2]))){
                             //getting errors that deleted is not set
                             // so disabling this check for now
                             // may never need it if original query to dbf only saves NONDELETED entries
@@ -162,7 +176,7 @@ class Compare
 
 	    			foreach($parameters->tests AS $s){
 
-				    		if(Compare::is($record[$s[0]], $s[1], $s[2])){
+				    		if(Compare::is($record[$s[0]], $s[1], trim($s[2]))){
 				    			$tests = true;
 				    			break;
 				    		}else{

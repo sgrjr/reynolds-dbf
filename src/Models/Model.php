@@ -7,20 +7,23 @@ use Sreynoldsjr\ReynoldsDbf\QueryBuilder\QueryBuilder;
 use Illuminate\Database\Eloquent\Model as EloquentModel;
 use Illuminate\Database\Query\Builder;
 use Sreynoldsjr\ReynoldsDbf\Models\Traits\DbfTableTrait;
-use Sreynoldsjr\ReynoldsDbf\Models\Traits\DbfModelTrait;
 use Sreynoldsjr\ReynoldsDbf\Models\Traits\DbfValidationTrait;
 use Illuminate\Database\Eloquent\Concerns\HasAttributes;
 use Sreynoldsjr\ReynoldsDbf\QueryBuilder\QueryConnectionResolver as Resolver;
 use Sreynoldsjr\ReynoldsDbf\QueryBuilder\DbfConnection;
 use Sreynoldsjr\ReynoldsDbf\Models\Traits\MagicFunctionsTrait;
+use Sreynoldsjr\ReynoldsDbf\Models\Traits\GetHeadersAttributeTrait;
+
+use Sreynoldsjr\ReynoldsDbf\Models\Traits\SetDefaultsTrait; //requires function initialize()
 
 class Model {
 
 	use DbfTableTrait,
-        DbfModelTrait,
         DbfValidationTrait,
         HasAttributes,
-        MagicFunctionsTrait;
+        MagicFunctionsTrait,
+        GetHeadersAttributeTrait,
+        SetDefaultsTrait;
   /**
      * The connection name for the model.
      *
@@ -33,6 +36,8 @@ class Model {
     protected $columns = [];
     protected $relations = [];
     public $builder = null;
+    public $database;
+    private $db;
 
     /**
      * The table associated with the model.
@@ -198,8 +203,13 @@ class Model {
 public function __construct(array $attributes = []){
     $this->attributes = $attributes;
 	$file = config('reynolds-dbf.files')[$this->getTable()];
-    $this->database = new Table(config('reynolds-dbf.root_paths')[$file[1]] . DIRECTORY_SEPARATOR . $file[0]);
-    $this->builder = new QueryBuilder($this, $this->database);
+    $this->database = config('reynolds-dbf.root_paths')[$file[1]] . DIRECTORY_SEPARATOR . $file[0];
+    $this->builder = new QueryBuilder($this);
+}
+
+public function database(){
+    if(!$this->db) $this->db = new Table($this->database);
+    return $this->db;
 }
 
 public function getTable(){
@@ -207,7 +217,7 @@ public function getTable(){
 }
 
 public function getColumnsAttribute(){
-    return $this->database->getColumns();
+    return $this->database()->getColumns();
 }
 
 public function graphql($args){
@@ -223,18 +233,32 @@ public function last($columns = ['*']){
     return $this->builder->last($columns);
 }
 
-public function get($columns = ['*']){
-    return $this->builder->get($columns);
+public function get($columns = ['*'], $list = false){
+    return $this->builder->get($columns, $list);
 }
 
-public static function all($columns = ['*'])
+public static function all($columns = ['*'], $list = false)
 {
-    return (new static)->builder->all($columns);
+    return (new static)->builder->all($columns, $list);
 }
 
 public function first($columns = ['*'])
 {
     return $this->builder->first($columns);
+}
+
+public static function unique($column)
+{
+    return (new static)->database()->unique($column);
+}
+
+public static function cache()
+{
+    return (new static)->database()->cache();
+}
+
+public static function rebuildFromCache(){
+    return (new static)->database()->rebuildFromCache();
 }
 
 public function paginate($perPage = 15, $columns = [], $pageName = 'page', $page = 1)
@@ -245,6 +269,12 @@ public function paginate($perPage = 15, $columns = [], $pageName = 'page', $page
 public function where($field, $operator, $value)
 {
     $this->builder->where($field, $operator, $value);
+    return $this;
+}
+
+public function orderBy($field, $direction="ASC")
+{
+    $this->builder->orderBy($field, $direction);
     return $this;
 }
 
@@ -266,14 +296,16 @@ public function perPage(Int $page)
     return $this;
 }
 
-public function findByIndex($index, $columns = ['*'])
-{
-    return $this->builder->findByIndex($index, $columns);
+public static function findByIndex($index, $columns = ['*'], $asObject = false)
+{   
+    $model = new static();
+    return $model->builder->findByIndex($index, $columns, $asObject);
 }
 
 public function save(array $options = []){
     //not sure how to implement the $options array yet
-    $result = $this->database->save($this->attributes);
+
+    $result = $this->database()->save($this->attributes);
 
     foreach($result AS $key=>$att){
         $this->$key = $att;
@@ -289,15 +321,15 @@ public function toArray(){
 }
 
 public function meta(){
-    if (!$this->database->isOpen()) $this->database->open();
-    $record = $this->database->moveTo($this->attributes['INDEX']);
+    if (!$this->database()->isOpen()) $this->database()->open();
+    $record = $this->database()->moveTo($this->attributes['INDEX']);
     $meta = $record->meta();
-    if ($this->database->isOpen()) $this->database->close();
+    if ($this->database()->isOpen()) $this->database()->close();
     return $meta;
 }
 
 public static function count(){
-    return (new static)->database->count();
+    return (new static)->database()->count();
 }
 
 public static function saveMany(array $items = []){
@@ -311,20 +343,24 @@ public static function saveMany(array $items = []){
 
 public static function create($attributes = []){
     $model = new static($attributes);
-    return $model->save(); 
+    return $model->initialize()->save();
 }
 
-public static function make($attributes = []){
-    return new static($attributes);
+public static function make($attributes = [], $skipInitialize = false){
+
+    if($skipInitialize){
+        return (new static($attributes));
+    }
+    return (new static($attributes))->initialize();
 }
 
 public function delete(){
-   $record = $this->database->delete($this->INDEX);
+   $record = $this->database()->delete($this->INDEX);
    return $this->copyFrom($record);
 }
 
 public function restore(){
-   $record = $this->database->restore($this->INDEX);
+   $record = $this->database()->restore($this->INDEX);
    return $this->copyFrom($record);
 }
 
@@ -332,7 +368,7 @@ public function copyFrom($attributes){
      foreach($attributes AS $key=>$att){
         $this->$key = $att;
     }
-    return $this;
+    return $this->initialize();
 }
 
 /**
@@ -370,7 +406,7 @@ public function trashed(){
 }
 
 public function isAvailable(){
-    return $this->database->isAvailable();
+    return $this->database()->isAvailable();
 }
 
 public function relationLoaded($key)
@@ -380,7 +416,7 @@ public function relationLoaded($key)
 
 public static function loop($callback, $startIndex=-1, $limit=1){
     $ctr = 0;
-    $db = (new static)->database;
+    $db = (new static)->database();
     $db->open();
 
     $db->moveTo($startIndex);

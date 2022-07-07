@@ -8,6 +8,7 @@ class ReynoldsDbf
 
     public function __construct(){
         $this->files = [];
+        $this->eloquent = [];
         $this->initFiles();
     }
 
@@ -21,6 +22,9 @@ class ReynoldsDbf
             foreach($config['files'] AS $key=>$file){
                 $model = "\\Sreynoldsjr\\ReynoldsDbf\\Models\\".ucfirst($key);
                 $this->files[$key] = new $model();
+
+                $model2 = "\\Sreynoldsjr\\ReynoldsDbf\\Models\\Eloquent\\".ucfirst($key);
+                $this->eloquent[$key] = new $model2();
             }
         }
 
@@ -70,6 +74,14 @@ class ReynoldsDbf
         $root->t()->close();
 
         return $data;
+    }
+
+    public static function install(){
+        $dbf = new static();
+
+        foreach($dbf->eloquent AS $model){
+            $model->migrate();
+        }
     }
 
 }

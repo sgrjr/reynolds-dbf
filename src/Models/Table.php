@@ -3,7 +3,9 @@
 use Sreynoldsjr\ReynoldsDbf\Models\Column; 
 use Sreynoldsjr\ReynoldsDbf\Models\Memo; 
 use Sreynoldsjr\ReynoldsDbf\Models\Record; 
-Use Exception;
+use Cache, Exception, stdclass;
+use Sreynoldsjr\ReynoldsDbf\Helpers\Misc;
+use Sreynoldsjr\ReynoldsDbf\Models\Traits\GlobalFieldTypesTrait;
 
 /**
 *
@@ -26,13 +28,15 @@ Use Exception;
 
 class Table {
 
+    use GlobalFieldTypesTrait;
+
     var $name;
     var $fp;
     var $isStream;
     var $filePos=0;
     var $recordPos=-1;
     var $record;
-
+    var $raw = false;
     var $version;
     var $modifyDate;
     var $recordCount;
@@ -57,6 +61,15 @@ class Table {
 
     private function init(){
         return $this;
+    }
+
+    public function setRaw(Bool $bool){
+        $this->raw = $bool;
+        return $this;
+    }
+
+    public function getRaw(){
+        return $this->raw;
     }
 
     public function __destruct() {
@@ -142,38 +155,13 @@ class Table {
         $this->languageCode = $this->readByte();
         $this->readBytes(2); //reserved
 
-        $fieldCount = ($this->headerLength - ($this->foxpro?296:33) ) / 32;
+        
         
         /* some checking */
         if (!$this->isStream && $this->headerLength>filesize($this->name)) trigger_error ($this->name." is not DBF", E_USER_ERROR);
         //if (!$this->isStream && $this->headerLength+($this->recordCount*$this->recordByteLength)-500>filesize($this->name)) trigger_error ($this->name." is not DBF", E_USER_ERROR);
 
-        /* columns */
-        $this->columnNames = array();
-        $this->columns = array();
-        $bytepos = 1;
-        for ($i=0;$i<$fieldCount;$i++) {
-            $column = new Column(
-                $this->readString(11),	// name
-                $this->readByte(),		// type
-                $this->readInt(),		// memAddress
-                $this->readChar(),		// length
-                $this->readChar(),		// decimalCount
-                $this->readBytes(2),	// reserved1
-                $this->readChar(),		// workAreaID
-                $this->readBytes(2),	// reserved2
-                $this->readByte()!=0,	// setFields
-                $this->readBytes(7),	// reserved3
-                $this->readByte()!=0,	// indexed
-                $i,						// colIndex
-                $bytepos,				// bytePos,
-                $this
-            );
-            $bytepos+=$column->getLength();
-            $this->columnNames[$i] = $column->getName();
-            $this->columns[$i] = $column;
-        }
-
+        $this->cacheColumns();
 
         if ($this->foxpro) {
             $this->backlist=$this->readBytes(263);
@@ -263,8 +251,13 @@ class Table {
         return $result->meta($toArray);
     }
 
-    function getColumns() {
+    function getColumns($onlyOriginal=false) {
         if($this->columns === null){$this->open(); $this->close();}
+        if($onlyOriginal){
+            return array_filter($this->columns, function($v){
+                return $v->original;
+            });
+        } 
         return $this->columns;
     }
 
@@ -276,6 +269,9 @@ class Table {
         }
     }
     function getColumnByName($name) {
+
+        if($this->columns === null){$this->open(); $this->close();}
+
         foreach ($this->columnNames as $i=>$n) if (strtoupper($n) == strtoupper($name)) return $this->columns[$i];
         return false;
     }
@@ -283,8 +279,8 @@ class Table {
         foreach ($this->columnNames as $i=>$n) if (strtoupper($n) == strtoupper($name)) return $i;
         return false;
     }
-    function getColumnCount() {
-        return sizeof($this->columns);
+    function getColumnCount($onlyOriginal = false) {
+        return sizeof($this->getColumns($onlyOriginal));
     }
     function getRecordCount() {
         if($this->recordCount === null){$this->open(); $this->close();}
@@ -348,6 +344,63 @@ class Table {
         fseek($this->fp,$offset);
     }
     
+    function unique($columnName){
+        $this->open();
+
+        $results = [];
+
+        $records = $this->getRecordCount();
+        $col = $this->getColumnByName($columnName);
+
+        for($i = 0; $i<$records; $i++){
+            $this->seek($this->headerLength+($i*$this->recordByteLength)+$col->memAddress);
+            $raw_data = trim($this->readBytes($col->length));
+
+            if($raw_data !== ""){
+                $results[] = trim($raw_data);
+            }
+            
+        }
+
+        $this->close();
+
+        return collect($results);
+    }
+
+    function cache(){
+        $this->open();
+        $cache = fopen($this->name . ".cache", "a");
+
+        $records = $this->getRecordCount();
+
+        for($i = 0; $i<$records; $i++){
+            $this->seek($this->headerLength+($i*$this->recordByteLength));
+            fwrite($cache, trim($this->readBytes($this->recordByteLength)) . "\n");
+        }
+
+        $this->close();
+        fclose($cache);
+
+        return true;
+    }
+
+    function _rebuildFromCache(){
+        //$file = file_get_contents($this->name . ".cache");
+        dd('finsish creating function rebuildFromCache in Table line 389.');
+        $file = new stdclass;
+
+        $this->open();
+        $this->seek(0);
+        $file->header = new stdclass;
+        $file->header->length = $this->headerLength;
+        $file->header->raw = $this->readBytes($this->headerLength);
+        
+
+        dd($file->header->raw[1]);
+        
+        $this->close();
+    }
+
     function moveTo($index) {
 
         $this->recordPos=$index;
@@ -452,7 +505,7 @@ class Table {
     }
 
     function log($var, $additional_data = []){
-        \App\Helpers\Misc::dbfLog(json_encode($var) . " " . $this->getName() . " " . json_encode($additional_data));
+        Misc::dbfLog(json_encode($var) . " " . $this->getName() . " " . json_encode($additional_data));
     }
 
 //Writing Functions
@@ -474,6 +527,7 @@ class Table {
         $this->record->copyFrom($attributes);
         $this->writeRecord();
         $this->close();
+
        return $this->record->getData();
     }
 
@@ -506,17 +560,18 @@ class Table {
     }
 
     function writeRecord() {
+
         $data = $this->record->serialize();
 
         if(strlen($data) !== $this->recordByteLength){
             $message = 'Cannot Save to file. Data for DBF is wrong Byte Length.' . strlen($data) . '-' . $this->recordByteLength;
-            \App\Helpers\Misc::dbfLog($message);
+            Misc::dbfLog($message);
             throw new \ErrorException(
                 $message
             );
         }
-
-        $offset = $this->headerLength+($this->record->recordIndex*$this->recordByteLength);
+        $offset = $this->record->recordIndex*$this->recordByteLength;
+        $offset = $this->headerLength+($offset);
         $this->write($data, $offset);
 
         if ($this->record->inserted) {
@@ -526,7 +581,7 @@ class Table {
 
     function writeHeader() {
 
-        $this->headerLength=($this->foxpro?296:33) + ($this->getColumnCount()*32);
+        $this->headerLength=($this->foxpro?296:33) + ($this->getColumnCount(true)*32);
         $this->seek(0);
         $this->writeChar($this->version);
         $this->write3ByteDate(time());
@@ -542,7 +597,7 @@ class Table {
         $this->writeByte($this->languageCode);
         $this->writeBytes(str_pad("", 2,chr(0)));
         
-        foreach ($this->columns as $column) {
+        foreach ($this->getColumns(true) as $column) {
             $this->writeString(str_pad(substr($column->rawname,0,11), 11,chr(0)));
             $this->writeByte($column->type);
             $this->writeInt($column->memAddress);
@@ -624,6 +679,91 @@ class Table {
         $result .= "</records>\n";
         $result .= "</table>\n";
         return $result;
+    }
+
+    public function getValueAttribute(){
+        return file_get_contents($this->name);
+    }
+
+    public function setColumns($info){
+        $this->columns = $info['columns'];
+        $this->columnNames = $info['columnNames'];
+        return $this;
+
+    }
+    public function cacheColumns(){
+         /* columns */
+
+        $name = strtolower(str_replace([DIRECTORY_SEPARATOR, '.',':'],"_",$this->name));
+        $fieldCount = ($this->headerLength - ($this->foxpro?296:33) ) / 32;
+
+        $this->setColumns($this->setTheColumns($fieldCount));
+
+    }
+
+    public function setTheColumns($fieldCount){
+            $columns = [];
+            $columnNames = [];
+            $appendToEnd = [];
+
+            $bytepos = 1;
+
+            for ($i=0;$i<$fieldCount;$i++) {
+                
+                $column = new Column(
+                    $this->readString(11),  // name
+                    $this->readByte(),      // type
+                    $this->readInt(),       // memAddress
+                    $this->readChar(),      // length
+                    $this->readChar(),      // decimalCount
+                    $this->readBytes(2),    // reserved1
+                    $this->readChar(),      // workAreaID
+                    $this->readBytes(2),    // reserved2
+                    $this->readByte()!=0,   // setFields
+                    $this->readBytes(7),    // reserved3
+                    $this->readByte()!=0,   // indexed
+                    $i,                     // colIndex
+                    $bytepos,               // bytePos,
+                    $this->getName()
+                );
+
+                $bytepos+=$column->getLength();
+                $columnNames[$i] = $column->getName();
+                $columns[$i] = $column;
+
+                if($column->getType() === $this->getGlobalFieldTypes()->DBFFIELD_TYPE_MEMO){
+                    $memo_column_name = $column->getName() . "_MEMO";
+                    $appendToEnd[ $memo_column_name] = new Column($memo_column_name, 'C' , false, 19, 0, false, false, false, false, false, false, count($columns), false, $this->getName(), false);
+                }
+
+            }
+
+            foreach($appendToEnd AS $key=>$val){
+                $columns[] = $val;
+                $columnNames[] = $key;
+            }
+
+            if(in_array('UPASS',$columnNames)){
+                $columns[] = new Column('password', 'C' , false, 255, 0, false, false, false, false, false, false, count($columns), false, $this->getName(), false);
+                $columnNames[] = 'password';
+            }
+
+            $columns[] = new Column('deleted_at', 'C' , false, 19, 0, false, false, false, false, false, false, count($columns), false, $this->getName(), false);
+            $columnNames[] = 'deleted_at';
+
+            $columns[] = new Column('INDEX', 'C' , false, 15, 0, false, false, false, false, false, false, count($columns), false, $this->getName(), false);
+            $columnNames[] = 'INDEX';
+
+            return ['columns' => $columns, 'columnNames'=>$columnNames];
+    }
+
+    public function getTypesAttribute(){
+        return $this->getGlobalFieldTypes();
+    }
+
+    public function __get($value){
+        $method = 'get'. ucfirst(strtolower($value)) . 'Attribute';
+        return $this->$method();
     }
 
 }

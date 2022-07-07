@@ -9,8 +9,8 @@ interface DbfQueryBuilderInterface {
     function where($column, $comparison, $value);
     function findByIndex($index, $columns = false);
     function find($primaryKeyValue);
-    function all($columns=['*']);
-    function get();
+    function all($columns=['*'], $list = false);
+    function get($columns=['*'], $list = false);
     function test($record);
     function first($columns = false);
     function __get($name);

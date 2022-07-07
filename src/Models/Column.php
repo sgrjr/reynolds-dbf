@@ -22,6 +22,9 @@ class Column extends \ArrayObject {
     var $bytePos;
     var $colIndex;
     var $types;
+    var $original;
+    var $table_name;
+
     private $container = array();
 
     public function __construct(
@@ -38,7 +41,8 @@ class Column extends \ArrayObject {
         $indexed,
         $colIndex,
         $bytePos,
-        $table
+        $table_name,
+        $original = true
     ) {
         $this->rawname=$name;
         $this->name=preg_replace('/[^a-zA-Z0-9-_\.]/','', strpos($name,"0x00")!==false?substr($name,0,strpos($name,"0x00")):$name);
@@ -51,8 +55,7 @@ class Column extends \ArrayObject {
         $this->indexed=$indexed;
         $this->bytePos=$bytePos;
         $this->colIndex=$colIndex;
-
-        $this->types = $this->getGlobalFieldTypes();
+        $this->original = $original;
 
         $this->container = [
             "name"=>$this->getName(),
@@ -63,7 +66,7 @@ class Column extends \ArrayObject {
             "nullable" => true
         ];
 
-        $this->table = $table;
+        $this->table_name = $table_name;
     }
 
     public function offsetSet($offset, $value) {
@@ -98,10 +101,10 @@ class Column extends \ArrayObject {
     function getDataLength() {
 
 	    switch ($this->type) {
-            case $this->types->DBFFIELD_TYPE_DATE : return 8;
-            case $this->types->DBFFIELD_TYPE_DATETIME : return 8;
-            case $this->types->DBFFIELD_TYPE_LOGICAL : return 1;
-            case $this->types->DBFFIELD_TYPE_MEMO : return 10;
+            case $this->getGlobalFieldTypes()->DBFFIELD_TYPE_DATE : return 8;
+            case $this->getGlobalFieldTypes()->DBFFIELD_TYPE_DATETIME : return 8;
+            case $this->getGlobalFieldTypes()->DBFFIELD_TYPE_LOGICAL : return 1;
+            case $this->getGlobalFieldTypes()->DBFFIELD_TYPE_MEMO : return 10;
             default : return $this->length;
 	    }
     }
@@ -137,7 +140,7 @@ class Column extends \ArrayObject {
       return $this->container;
 
         $exactLengths = [
-            "KEY" => 14,
+            //"KEY" => 14,
             "PROD_NO" => 14,
             "ISBN" => 14,
             "INDEX" => 12,

@@ -11,7 +11,7 @@ return [
     "files" => [
       "vendors"=> ["VENDOR.DBF",0],
       "inventories"=> ["invent.DBF", 0],
-      "users"=> ["password.dbf", 0],
+      "passwords"=> ["password.dbf", 0],
       "alldetails"=> ["alldetail.DBF", 1],
       "allheads"=> ["allhead.DBF", 1],
       "ancientdetails"=> ["ancientdetail.dbf", 1],

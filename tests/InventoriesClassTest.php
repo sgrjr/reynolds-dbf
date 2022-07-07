@@ -40,21 +40,22 @@ class InventoriesClassTest extends TestCase
 
    public function testStaticIndexFunction()
     {
-        $inventory = Inventories::query()->asObject()->findByIndex(88);
+        $inventory = Inventories::findByIndex(88, ['*'], true);
         $this->assertEquals(88, $inventory->INDEX);
     }
 
    public function testPaginateFunction()
     {
         //$perPage = 15, $columns = [], $pageName = 'page', $page = null
-        $inventory = Inventories::query()->asObject()->paginate(3,[],'page',2);
-        $this->assertEquals(true, $inventory->first()->INDEX > 2);
-        $this->assertEquals(3, $inventory->first()->INDEX);
+        $inventory = Inventories::query()->paginate(3,[],'page',2);
+
+        $this->assertEquals(true, $inventory->first()['INDEX'] > 2);
+        $this->assertEquals(3, $inventory->first()['INDEX']);
     }
 
         public function testStaticAllFunction()
     {
-        $inventory =  Inventories::all();
+        $inventory = Inventories::all();
         $this->assertGreaterThanOrEqual(2475, $inventory->count());     
     }
 
@@ -64,7 +65,7 @@ class InventoriesClassTest extends TestCase
             "INDEX" => ">_100"
         ]];
         $result = Inventories::query()->asObject()->graphql($query);
-        $this->assertSame($result->first()->INDEX, 101);
+        $this->assertEquals($result->first()->INDEX, 101);
     }
 
     public function testGraphqlQueryPaginateFunction()
@@ -75,7 +76,7 @@ class InventoriesClassTest extends TestCase
 
         $result = Inventories::query()->graphql($query)->paginate($query["first"],[],'page',$query["page"]);
         $item = $result->first();
-         $this->assertSame($item["INDEX"], 101);
+         $this->assertEquals($item["INDEX"], 101);
     }
 
 }

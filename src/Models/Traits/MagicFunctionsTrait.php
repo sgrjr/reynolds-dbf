@@ -11,8 +11,18 @@ trait MagicFunctionsTrait {
  * @return mixed
  */
 public function __get($key)
-{
-    return $this->getAttribute($key);
+{   
+    $att = $this->getAttribute($key);
+
+    if(is_string($att)){
+        return $att;
+    }else if($att !== null){
+        if(is_object($att) && isset($att->value)) return $att->value;
+        return $att;
+    }else{
+        $name = "get" . ucfirst($key). "Attribute";
+        return $this->$name();
+    }
 }
 
 /**
@@ -24,6 +34,7 @@ public function __get($key)
  */
 public function __set($key, $value)
 {
+    if(is_string($value)) $this->setAttribute($key, $this->transformToDataEntry($key,$value));
     $this->setAttribute($key, $value);
 }
 

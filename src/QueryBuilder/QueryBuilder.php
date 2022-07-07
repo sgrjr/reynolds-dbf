@@ -22,15 +22,13 @@ class QueryBuilder extends IlluminateQueryBuilder implements DbfQueryBuilderInte
 	private $data;
 	protected $children;
 	public $props;
-	public $database;
 	public $model;
 	public $asObject;
 
-	public function __construct($model, $database, $asObject = false){
+	public function __construct($model, $asObject = false){
 		$this->asObject = $asObject;
 		$this->model = $model;
-		$this->database =& $database;
-		$this->columns = false;
+		$this->columns = ['*'];
 		$this->writable = false;
 		$this->children = collect([]);
 		$this->props = collect([]);
@@ -38,9 +36,13 @@ class QueryBuilder extends IlluminateQueryBuilder implements DbfQueryBuilderInte
 		$this->initData();
 	}
   
-	public function asObject(){
-		$this->asObject = true;
+	public function asObject($yes = true){
+		$this->asObject = $yes;
 		return $this;
+	}
+
+	public function getAsObject(){
+		return $this->asObject;
 	}
 
     public function setModel($model, $ids = [])
@@ -102,9 +104,35 @@ public function truncateRecords(){
 	return $this;
 }
 // $record is an array of values
-public function addDataRecord($record){
-	$this->asObject ? 
-		$this->data->addRecord($this->model->make($record))
+public function addDataRecord($record, $columns=['*'], $list = false){
+
+	$skipInitilizing = false;
+
+	if(count($columns) > 0 && $columns[0] != "*"){
+		$newRecord = [];
+		foreach($columns as $col){
+			if($list){
+				if($record[$col] !== "" && $record[$col] !== null){
+					if(count($columns) === 1){
+						$newRecord = $record[$col];
+					}else{
+						$newRecord[$col] = $record[$col];
+					}
+					
+				} else{
+					$newRecord = null;
+				}
+			}else{
+				$newRecord[$col] = $record[$col];
+			}
+		}
+
+		$record = $newRecord;
+		$skipInitilizing = true;
+	}
+
+	$this->asObject && $list === false? 
+		$this->data->addRecord($this->model->make($record, $skipInitilizing))
 		:
 		$this->data->addRecord($record); 
 
@@ -115,29 +143,38 @@ public function addDataRecord($record){
 		return Compare::test($record, $this->parameters);
 	}
 
-    public function all($columns=['*']) {
+    public function all($columns=['*'], $list = false) {
         $this->parameters->setPerPage(999999999);
         $this->parameters->setPage(1);
-        return $this->get($columns);
+        return $this->get($columns, $list);
     }
 
     public function last($columns=['*']) {
         $this->parameters->setPerPage(1);
         $this->parameters->setPage(1);
-        $this->parameters->setIndex($this->database->getRecordCount()-1);
+        $this->parameters->setIndex($this->model->database()->getRecordCount()-1);
         return $this->get($columns)->last();
     }
+	
+	public function findFirstByFilter($_, $args){
 
-    public function findByIndex($index, $columns = ['*']) {
+        $args['first'] = 1;
+        $args['page'] = 1;
+
+        return $this->graphql($args)->first();
+  	}
+
+    public function findByIndex($index, $columns = ['*'], $asObject = false) {
 
     	if($index == null) return null;
+   
         $this->parameters->setPerPage(1);
         $this->parameters->setPage(1);
         $this->parameters->setIndex($index);
-        return $this->get($columns)->first();
+        return $this->asObject($asObject)->get($columns)->first();
     }
 
-    public function first($columns = false){
+    public function first($columns = ['*']){
     	$this->parameters->setPerPage(1);
         $this->parameters->setPage(1);
         return $this->get($columns)->first();
@@ -161,24 +198,25 @@ public function addDataRecord($record){
         }
     }
 
-	public function setColumns($columns = false){
-		$this->database->open();
+	public function setColumns($columns = ["*"]){
+
+		$this->model->database()->open();
 		$this->props['columns'] = [];
 
-		if($columns !== false && count($columns) > 0){
-			foreach($this->model->t()->getColumns() AS $column){
+		if(count($columns) > 0 && $columns[0] != "*"){
+			foreach($this->model->database()->getColumns() AS $column){
 				if(in_array($column->name, $columns)){
 					$this->props['columns'][] = $column->toArray();
 				}
 			}
 		}else{
-			foreach($this->model->t()->getColumns() AS $column){
+			foreach($this->model->database()->getColumns() AS $column){
 				$this->props['columns'][] = $column->toArray();
 			}
 		}
 
 
-		$this->model->t()->close();
+		$this->model->database()->close();
 		return $this;
 	}
 
@@ -351,6 +389,11 @@ public function orderByRaw($sql, $bindings = []){
     return $this;
 }
 
+public function orderBy($field, $direction="ASC"){
+	$this->parameters->orderBy($field, $direction);
+    return $this;
+}
+
 public function setPage($pageValue){
 	$this->parameters->page = $pageValue;
 	return $this;
@@ -368,29 +411,33 @@ public function find($primaryKeyValue, $columns = []){
 }
 
 
-	public function setData($columns = ['*']){ 
+	public function setData($columns = ['*'], $list = false){ 
+
+		if($this->parameters->order->column != false && $this->parameters->order->column !== "INDEX"  && $this->parameters->order->direction !== "ASC"){
+			dd(88);
+		}
 
 		ini_set('memory_limit','512M');
 		$this->parameters->setSelect($columns);
-        $this->database->open(); 
+        $this->model->database()->open(); 
 
         if($this->parameters->index !== false){
-        	$record = $this->database->moveTo($this->parameters->index);
+        	$record = $this->model->database()->setRaw(true)->moveTo($this->parameters->index);
 
         	// If a starting index was given, The limit is set to 1 and the record passes the tests
-        	// then add this record and RETURN out of this function. 
+        	// then add this record and RETURN out of this function.
         	$rd = $record->getData($this->parameters->ignoreColumns);
         	if($this->parameters->limit() === 1 && $this->test($rd)){
-        		$this->addDataRecord($rd);
+        		$this->addDataRecord($rd, $columns, $list);
         		return $this;
         	}
         }   	
 
-        while ($record=$this->database->nextRecord() ) {
+        while ($record=$this->model->database()->nextRecord() ) {
             $rd = $record->getData($this->parameters->ignoreColumns);
 
             if($this->test($rd) === true){
-            	$this->addDataRecord($rd);
+            	$this->addDataRecord($rd, $columns, $list);
             }
             
             if($this->data->count() >= $this->parameters->limit()){
@@ -398,7 +445,7 @@ public function find($primaryKeyValue, $columns = []){
             }
         }
 
-        $this->database->close();
+        $this->model->database()->close();
 
         unset($dbf);
         unset($bag);
@@ -408,14 +455,15 @@ public function find($primaryKeyValue, $columns = []){
         return $this;
 	}
 	
-	public function get($columns = ["*"]){
-		$this->setData($columns);
+	public function get($columns = ["*"], $list = false){
+		$this->setData($columns, $list);
 		return $this->data->data;		
 	}
+
 	//$perPage = 15, $columns = [...], $pageName = 'page', $page = null)
 	public function paginate($perPage = 15, $columns = [], $pageName = 'page', $page = null){ //not passing along $pageName for now
-		$this->page($page)->perPage($perPage)->setData($columns);
-		return PaginatorInfo::get(["items"=>$this->data->data, "perPage"=>$perPage, "page"=> $page]);	
+		$data = $this->page($page)->perPage($perPage)->get($columns);
+		return PaginatorInfo::get(["items"=>$data, "perPage"=>$perPage, "page"=> $page]);	
 	}
 
 	public function sortBy($field_name, $sort_type= 0){

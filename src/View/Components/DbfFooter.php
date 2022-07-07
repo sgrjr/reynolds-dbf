@@ -2,7 +2,7 @@
  
 use Illuminate\View\Component;
  
-class Footer extends Component
+class DbfFooter extends Component
 {
  
     /**
@@ -31,6 +31,6 @@ class Footer extends Component
      */
     public function render()
     {
-        return view('reynolds-dbf::components.footer');
+        return view('reynolds-dbf::components.dbf-footer');
     }
 }
