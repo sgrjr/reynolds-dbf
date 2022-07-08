@@ -32,7 +32,7 @@ class Misc
         $link->text = $text;
       }
       
-      $link->url = $base . str_replace(" ", "+",str_replace("  ", " ", trim(str_replace("-","",$text)))) . "/" . $col;
+      $link->url = $base . str_replace(" ", "+",str_replace("  ", " ", trim(str_replace("-","",$text) ?? ''))) . "/" . $col;
       return $link;
 
   }
@@ -349,7 +349,6 @@ public static function gauranteedBooksCount($count, $dates, $nature = "CENTE"){
                           return ['binary',[$length]];  
                             break;
 
-
                          default:
                              return ['char',[$length]];
                              //$table->char($n, $l);   
@@ -371,7 +370,19 @@ public static function gauranteedBooksCount($count, $dates, $nature = "CENTE"){
 
     public static function setUpTableFromHeaders($table, $headers, $model){
 
+        // overriding to compensate for encoding errors on input
+        $binary = [
+            "inventories" => ["SUBTITLE"],
+            "backdetails" => ["TITLE"]
+        ];
+
         foreach($headers AS $h){
+
+        /* OVERRIDES */
+         if(is_array($h) && isset($binary[$model->getTable()]) && in_array($h['name'], $binary[$model->getTable()])) {
+            $h['mysql_type'] = "Binary";
+            $h['type'] = 'G';
+         };
 
           $funcArray = Misc::resolveTypeToMysqlFunc($h);
           $func = $funcArray[0];

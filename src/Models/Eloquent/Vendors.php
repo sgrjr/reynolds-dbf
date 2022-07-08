@@ -37,6 +37,11 @@ class Vendors extends BaseModel implements ModelInterface {
       protected $appends = ['summary','isbns'];
       public $fillable = ['ACCTNOTE', 'ACOLLNOTE', 'ARTICLE', 'BUDGET', 'CARTICLE', 'CITY', 'CITYKEY', 'COMMCODE', 'COMPUTER', 'COUNTRY', 'CUSTNOTE', 'DATESTAMP', 'deleted_at', 'EMAIL', 'EMCHANGE', 'ENOTE', 'ENTRYDATE', 'EXTENSION', 'FAXPHONE', 'FIRST', 'INDEX', 'KEY', 'LAST', 'LASTDATE', 'LASTTIME', 'LASTTOUCH', 'MIDNAME', 'NATURE', 'NEWCODE', 'NOEMAILS', 'OLDCODE', 'ORDATE', 'ORGNAME', 'ORGNAMEKEY', 'ORSTATUS', 'PROMOTIONS', 'RECALLD', 'REMDATE', 'REMOVED', 'SECONDARY', 'SEX', 'STATE', 'STREET', 'TIMESTAMP', 'TITLE', 'VOICEPHONE', 'WEBSERVER', 'WHAT', 'ZIP5'];
 
+    public function team()
+    {
+        return $this->belongsTo(\App\Models\Team::class, 'vendor_id','id');
+    }
+
 	public function standingOrders()
     {
         return $this->hasMany(Standing_orders::class,'KEY','KEY');

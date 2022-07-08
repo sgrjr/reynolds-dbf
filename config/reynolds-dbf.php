@@ -9,13 +9,9 @@ return [
     "find_dbfs" => false,
     
     "files" => [
-      "vendors"=> ["VENDOR.DBF",0],
       "inventories"=> ["invent.DBF", 0],
+      "vendors"=> ["VENDOR.DBF",0],
       "passwords"=> ["password.dbf", 0],
-      "alldetails"=> ["alldetail.DBF", 1],
-      "allheads"=> ["allhead.DBF", 1],
-      "ancientdetails"=> ["ancientdetail.dbf", 1],
-      "ancientheads"=> ["ancienthead.DBF", 1],
       "backdetails"=> ["backdetail.DBF", 1],
       "backheads"=> ["backhead.DBF", 1],
       "booktexts"=> ["booktext.dbf", 1],
@@ -24,6 +20,12 @@ return [
       "passfiles"=> ["passfile.DBF", 1],
       "standing_orders"=> ["standing.DBF", 1],
       "webheads"=> ["webhead.DBF", 0],
-      "webdetails"=> ["webdetail.DBF", 0]
-    ]
+      "webdetails"=> ["webdetail.DBF", 0],
+      "alldetails"=> ["alldetail.DBF", 1],
+      "allheads"=> ["allhead.DBF", 1],
+      "ancientdetails"=> ["ancientdetail.dbf", 1],
+      "ancientheads"=> ["ancienthead.DBF", 1]
+    ],
+
+    "seeds" => []
 ];

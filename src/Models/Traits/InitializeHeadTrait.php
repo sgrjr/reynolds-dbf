@@ -95,18 +95,18 @@ public function initialize(){
     /* MAKES SURE ARGS HAVE VENDOR RELATED INFO */
 
     $this
-      ->setIfNotSet('BILL_1', trim($vendor->ARTICLE) . " " . trim($vendor->ORGNAME) )// trim(ARTICLE)+ " " trim(ORGNAME))
+      ->setIfNotSet('BILL_1', trim($vendor->ARTICLE ?? '') . " " . trim($vendor->ORGNAME ?? '') )// trim(ARTICLE)+ " " trim(ORGNAME))
       ->setIfNotSet('BILL_2', $vendor->STREET); 
       
       if(trim($vendor->SECONDARY != "")){
         //a) If there is an entry in vendor->SECONDARY
         $this
           ->setIfNotSet('BILL_3', $vendor->SECONDARY)
-          ->setIfNotSet('BILL_4', trim(trim($vendor->CARTICLE) . " " . trim($vendor->CITY) . ", " . $vendor->STATE . " " . $vendor->ZIP5))
+          ->setIfNotSet('BILL_4', trim(trim($vendor->CARTICLE ?? '') . " " . trim($vendor->CITY ?? '') . ", " . $vendor->STATE . " " . $vendor->ZIP5) ?? '')
           ->setIfNotSet('ATTENTION', $vendor->SECONDARY);
       }else{
         $this
-          ->setIfNotSet('BILL_3', trim(trim($vendor->CARTICLE) . " " . trim($vendor->CITY) . ", " . $vendor->STATE . " " . $vendor->ZIP5))
+          ->setIfNotSet('BILL_3', trim(trim($vendor->CARTICLE ?? '') . " " . trim($vendor->CITY ?? '') . ", " . $vendor->STATE . " " . $vendor->ZIP5) ?? '')
           ->setIfNotSet('BILL_4', "")
           ->setIfNotSet('ATTENTION', $vendor->SECONDARY);
       }
@@ -118,9 +118,9 @@ public function initialize(){
       ->setIfNotSet('BILL_5', "")
       ->setIfNotSet('ROOM', "")
       ->setIfNotSet('DEPT', "")
-      ->setIfNotSet('COMPANY', trim(trim($vendor->ARTICLE) . " " . trim($vendor->ORGNAME)))
+      ->setIfNotSet('COMPANY', trim(trim($vendor->ARTICLE ?? '') . " " . trim($vendor->ORGNAME ?? '')))
       ->setIfNotSet('STREET',  $vendor->STREET)
-      ->setIfNotSet('CITY', trim(trim($vendor->CARTICLE) . " " . trim($vendor->CITY)))
+      ->setIfNotSet('CITY', trim(trim($vendor->CARTICLE ?? '') . " " . trim($vendor->CITY ?? '') ?? ''))
       ->setIfNotSet('STATE', $vendor->STATE)
       ->setIfNotSet('POSTCODE', $vendor->ZIP5);
 
@@ -132,22 +132,22 @@ public function initialize(){
       /* MAKES SURE ARGS HAVE MINIMAL PROPERTIES BY COPYING FROM ANOTHER RECORD. */
 
       $this
-      ->setIfNotSet('VOICEPHONE', trim($head->VOICEPHONE))
-      ->setIfNotSet('FAXPHONE', trim($head->FAXPHONE))
-      ->setIfNotSet('EMAIL', trim($head->EMAIL))
-      ->setIfNotSet('BILL_1', trim($head->BILL_1))
-      ->setIfNotSet('BILL_2', trim($head->BILL_2))
-      ->setIfNotSet('BILL_3', trim($head->BILL_3))
-      ->setIfNotSet('BILL_4', trim($head->BILL_4))
-      ->setIfNotSet('BILL_5', trim($head->BILL_5))
-      ->setIfNotSet('COMPANY', trim($head->COMPANY))
-      ->setIfNotSet('ATTENTION', trim($head->ATTENTION))
-      ->setIfNotSet('STREET', trim($head->STREET))
-      ->setIfNotSet('ROOM', trim($head->ROOM))
-      ->setIfNotSet('DEPT', trim($head->DEPT))
-      ->setIfNotSet('CITY', trim($head->CITY))
-      ->setIfNotSet('STATE', trim($head->STATE))
-      ->setIfNotSet('POSTCODE', trim($head->POSTCODE));
+      ->setIfNotSet('VOICEPHONE', trim($head->VOICEPHONE ?? ''))
+      ->setIfNotSet('FAXPHONE', trim($head->FAXPHONE ?? ''))
+      ->setIfNotSet('EMAIL', trim($head->EMAIL ?? ''))
+      ->setIfNotSet('BILL_1', trim($head->BILL_1 ?? ''))
+      ->setIfNotSet('BILL_2', trim($head->BILL_2 ?? ''))
+      ->setIfNotSet('BILL_3', trim($head->BILL_3 ?? ''))
+      ->setIfNotSet('BILL_4', trim($head->BILL_4 ?? ''))
+      ->setIfNotSet('BILL_5', trim($head->BILL_5 ?? ''))
+      ->setIfNotSet('COMPANY', trim($head->COMPANY ?? ''))
+      ->setIfNotSet('ATTENTION', trim($head->ATTENTION ?? ''))
+      ->setIfNotSet('STREET', trim($head->STREET ?? ''))
+      ->setIfNotSet('ROOM', trim($head->ROOM ?? ''))
+      ->setIfNotSet('DEPT', trim($head->DEPT ?? ''))
+      ->setIfNotSet('CITY', trim($head->CITY ?? ''))
+      ->setIfNotSet('STATE', trim($head->STATE ?? ''))
+      ->setIfNotSet('POSTCODE', trim($head->POSTCODE ?? ''));
 
     return $this;
   }
@@ -171,7 +171,7 @@ public function initialize(){
         Ancientheads::unique('REMOTEADDR')
       );
 
-      $rm = trim($all->sort()->last()) + 1;
+      $rm = trim($all->sort()->last() ?? 0) + 1;
 
       return intval($rm);
     }
@@ -189,7 +189,7 @@ public function initialize(){
       $this
       ->setIfNotSet('ORDEREDBY',$user->UNAME)
       ->setIfNotSet('EMAIL',$user->EMAIL)
-      ->setIfNotSet('USERPASS',$user->user_pass_unsafe)
+      ->setIfNotSet('USERPASS',$user->UPASS)
       ->setIfNotSet('LASTTOUCH',$user->KEY)
       ->setIfNotSet('BILL_1',$user->vendor->ORGNAME)
       ->setIfNotSet('BILL_2',"c/o " . $user->vendor->FIRST . " " . $user->vendor->LAST)

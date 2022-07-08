@@ -23,7 +23,6 @@ class Application {
   }
 
 	public static function props($user = null){
-
 		return [
 			"browse" => static::browse(),
 			"catalog" => static::catalog(),

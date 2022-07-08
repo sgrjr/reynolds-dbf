@@ -42,7 +42,8 @@ class Record {
                 $this->data[$column->getName()] = DataEntry::make($value, $column);
             }
         }else if ($rawData && strlen($rawData)>0) {
-            $this->deleted_at=(ord($rawData)!="32")? null:now()->toDateTimeString();
+            //if(str_contains( $rawData, '\86')) dd($rawData);
+            $this->deleted_at=(ord($rawData)=="32")? null:now()->toDateTimeString();
 
             foreach ($table->getColumns() as $column) {
 
@@ -74,13 +75,13 @@ class Record {
                 return $this->getRecordIndex();
             case 'deleted_at':
                 return $this->deleted_at;
+            case 'created_at':
+            case 'updated_at':
+                return null;
             default:
                 if(str_contains($field, "_MEMO")){
                     $this->getMemoValue(str_replace("_MEMO","",$field));
-                }else if($field === "password"){
-                   return Hash::make($this->UPASS);
                 }else{
-
                     dd("custom field has no function" . $field);
                 }
         }
@@ -98,12 +99,10 @@ class Record {
     function transform($column, $value){
         if($column->getType() === "M"){
             $this->transformMemo($column,$value);
-        }else if($column->name === "UPASS"){
-            $this->transformPassword($column,$value);
         }else{
             $this->table->getRaw()? 
-                $this->data[$column->getName()] = trim($value) :
-                $this->data[$column->getName()] = DataEntry::make(trim($value), $column);
+                $this->data[$column->getName()] = trim($value ?? '') :
+                $this->data[$column->getName()] = DataEntry::make(trim($value ?? ''), $column);
         }
 
     }
@@ -116,7 +115,7 @@ class Record {
         $this->data[$column->getName() . '_MEMO'] = DataEntry::make($val, $this->table->getColumnByName($column->getName().'_MEMO'));
     }
 
-    function transformPassword($column, $value){
+    function _transformPassword($column, $value){
        $this->data[$column->getName()] = DataEntry::make($value, $column);
        $this->data["password"] = DataEntry::make(\Hash::make($value), $this->table->getColumnByName('password'));           
     }
@@ -178,7 +177,7 @@ class Record {
     function forceGetString($columnObj) {
         $index = $columnObj->getName();
         if (ord($this->data[$index]->value)=="0") return false;
-        return trim($this->data[$index]->value);
+        return trim($this->data[$index]->value ?? '');
     }
     function getObjectByName($columnName) {
         return $this->getObject($this->table->getColumnByName($columnName));
@@ -451,10 +450,10 @@ class Record {
                 $val = $this->data[$columnName];
 
                 if(is_object($val)){
-                    $val = trim($val->value);
+                    $val = trim($val->value ?? '');
                     $length = $this->data[$columnName]->length;
                 }else{
-                    $val = trim($val);
+                    $val = trim($val ?? '');
                     $length = $column->getLength();
                 }
 

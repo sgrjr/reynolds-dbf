@@ -1,6 +1,7 @@
 <?php namespace Sreynoldsjr\ReynoldsDbf\Console\Commands;
 
 use Illuminate\Console\Command;
+use Sreynoldsjr\ReynoldsDbf\ReynoldsDbf;
 
 class SeedTable extends Command
 {
@@ -9,7 +10,7 @@ class SeedTable extends Command
      *
      * @var string
      */
-    protected $signature = 'rdbf:seed {table}';
+    protected $signature = 'rdbf:seed {table?} {--force}';
 
     /**
      * The console command description.
@@ -25,8 +26,16 @@ class SeedTable extends Command
      */
     public function handle()
     {
+        if(!$this->argument('table')) ReynoldsDbf::seed($this->option('force'));
+
         $this->comment(PHP_EOL."Seeding Database Table " . $this->argument('table') . "...".PHP_EOL);
-        '\\Sreynoldsjr\\ReynoldsDbf\\Models\\Eloquent\\'. ucfirst($this->argument('table'))::seedTable();
-        $this->comment(PHP_EOL."Seeding complete.".PHP_EOL);
+
+        $class_name = '\Sreynoldsjr\ReynoldsDbf\Models\Eloquent\\'  . ucfirst($this->argument('table'));
+        $result = (new $class_name)->seedTable($this->option('force'));
+        if(!$result){
+            $this->comment(PHP_EOL."Nothing seeded.".PHP_EOL);
+        }else{
+            $this->comment(PHP_EOL."Seeding complete.".PHP_EOL);
+        }
     }
 }

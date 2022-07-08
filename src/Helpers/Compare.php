@@ -119,11 +119,11 @@ class Compare
   }
 
   protected static function is_null($op1,$op2){
-    return is_null(trim($op1));
+    return is_null(trim($op1  ?? ''));
   }
 
   protected static function is_not_null($op1,$op2){
-    return !is_null(trim($op1));
+    return !is_null(trim($op1  ?? ''));
   }
 
   public static function test($record, $parameters){
@@ -157,7 +157,7 @@ class Compare
 	    					}
 						}
 
-						if(isset($record[$s[0]]) && Compare::is($record[$s[0]], $s[1], trim($s[2]))){
+						if(isset($record[$s[0]]) && Compare::is($record[$s[0]], $s[1], trim($s[2] ?? ''))){
                             //getting errors that deleted is not set
                             // so disabling this check for now
                             // may never need it if original query to dbf only saves NONDELETED entries

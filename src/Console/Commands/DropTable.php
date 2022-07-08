@@ -1,6 +1,7 @@
 <?php namespace Sreynoldsjr\ReynoldsDbf\Console\Commands;
 
 use Illuminate\Console\Command;
+use Sreynoldsjr\ReynoldsDbf\ReynoldsDbf;
 
 class DropTable extends Command
 {
@@ -9,7 +10,7 @@ class DropTable extends Command
      *
      * @var string
      */
-    protected $signature = 'rdbf:drop {table}';
+    protected $signature = 'rdbf:drop {table?}';
 
     /**
      * The console command description.
@@ -25,7 +26,9 @@ class DropTable extends Command
      */
     public function handle()
     {
+        if(!$this->argument('table')) return ReynoldsDbf::drop();
         $this->comment(PHP_EOL."Dropping Database Table ".$this->argument('table')."...".PHP_EOL);
-        '\\Sreynoldsjr\\ReynoldsDbf\\Models\\Eloquent\\'. ucfirst($this->argument('table'))::dropTable();
+        $class_name = '\Sreynoldsjr\ReynoldsDbf\Models\Eloquent\\'  . ucfirst($this->argument('table'));
+        (new $class_name)->dropTable();
     }
 }

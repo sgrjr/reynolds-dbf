@@ -1,6 +1,7 @@
 <?php namespace Sreynoldsjr\ReynoldsDbf\Console\Commands;
 
 use Illuminate\Console\Command;
+use Sreynoldsjr\ReynoldsDbf\ReynoldsDbf;
 
 class UpdateTable extends Command
 {
@@ -9,7 +10,7 @@ class UpdateTable extends Command
      *
      * @var string
      */
-    protected $signature = 'rdbf:update {table}';
+    protected $signature = 'rdbf:update {table?}';
 
     /**
      * The console command description.
@@ -25,9 +26,11 @@ class UpdateTable extends Command
      */
     public function handle()
     {
-        $this->comment(PHP_EOL."Seeding Database Table " . $this->argument('table') . "...".PHP_EOL);
-        dd('\\Sreynoldsjr\\ReynoldsDbf\\Models\\Eloquent\\'. ucfirst($this->argument('table'))::static);
-        '\\Sreynoldsjr\\ReynoldsDbf\\Models\\Eloquent\\'. ucfirst($this->argument('table'))::updateTable();
-        $this->comment(PHP_EOL."Seeding complete.".PHP_EOL);
+        if(!$this->argument('table')) return ReynoldsDbf::update();
+
+        $this->comment(PHP_EOL."Updating Database Table " . $this->argument('table') . "...".PHP_EOL);
+        $class_name = '\Sreynoldsjr\ReynoldsDbf\Models\Eloquent\\'  . ucfirst($this->argument('table'));
+        (new $class_name)->updateTable();
+        $this->comment(PHP_EOL."Updating complete.".PHP_EOL);
     }
 }

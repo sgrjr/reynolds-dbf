@@ -84,4 +84,27 @@ class ReynoldsDbf
         }
     }
 
+    public static function seed($force = false){
+        $dbf = new static();
+
+        foreach($dbf->eloquent AS $model){
+            $model->seedTable($force);
+        }
+    }
+
+     public static function update(){
+        $dbf = new static();
+
+        foreach($dbf->eloquent AS $model){
+            $model->updateTable();
+        }
+    }
+
+     public static function drop(){
+        $dbf = new static();
+
+        foreach($dbf->eloquent AS $model){
+            $model->dropTable();
+        }
+    }
 }

@@ -1,12 +1,11 @@
 <?php namespace Sreynoldsjr\ReynoldsDbf\Models\Traits;
 
 trait GetHeadersAttributeTrait {
-		public function getHeadersAttribute(){
+	public function getHeadersAttribute(){
 		$fillable = $this->getFillable();
         $headers = $this->getAttributeTypes();
-        $ignore = $this->getIgnoreColumns();
-
-        if(isset($headers["_config"]) ){
+        
+        if(isset($headers["_config"])) unset($headers["_config"]); 
             
             $cols = $this->dbf()->database()->getMeta();
            
@@ -14,32 +13,10 @@ trait GetHeadersAttributeTrait {
                 $con = $col->toArray();
                 $name = $con["name"];
 
-                if($name !== null && !in_array($name,$ignore) ){
+                if($name !== null ){
 			    	$headers[$name] = $con;
             	}
 		    }
-
-           unset($headers["_config"]);
-
-          /* $headers["INDEX"] =[
-            "name" => "INDEX",
-            "type" => "Int",
-            "mysql_type" => "Int",
-            "length" => 15,
-            "nullable" => false,
-            "decimal_count" => 0
-           ];
-		*/
-           $headers["deleted_at"] =[
-            "name" => "deleted_at",
-            "type" => "TIMESTAMP",
-            "mysql_type" => "TIMESTAMP",
-            "length" => 19,
-            "nullable" => true,
-            "decimal_count" => 0
-           ];
-
-		}
 
         if(isset($headers["timestamps"]) && $headers["timestamps"] === true){
             unset($headers['timestamps']);
@@ -60,8 +37,8 @@ trait GetHeadersAttributeTrait {
             "nullable"=>false,
             "decimal_count" => 0
             ];
-		}
-
+        }
+            
         foreach($fillable AS $att){
 
             if(!isset($headers[$att])){
@@ -76,11 +53,7 @@ trait GetHeadersAttributeTrait {
 			}
             
 		}
-        
-        if(isset($headers['UPASS'])){
-        	//overriding pass length
-        	$headers['UPASS']['length'] = 128;
-        }
+
 	    return $headers;
 	}
 }

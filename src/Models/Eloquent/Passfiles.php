@@ -18,7 +18,6 @@ class Passfiles extends BaseModel implements ModelInterface{
     "_config"=>"passfiles",
   ];
 
-  //protected $ignoreColumns = ["DUNNDAYS"];
   public $fillable = [
   	"COMPANY","COUNTRY", "DATE","INDEX","deleted_at","DISCOUNT","DUNNDAYS","EMAIL","KEY","LISTPRICE","ORDER","ORGNAME","PASSWORD",
   	"SALEPRICE","STANDING","VISION","WEBSERVER","WHATCOLOR"

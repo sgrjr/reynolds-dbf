@@ -354,10 +354,10 @@ class Table {
 
         for($i = 0; $i<$records; $i++){
             $this->seek($this->headerLength+($i*$this->recordByteLength)+$col->memAddress);
-            $raw_data = trim($this->readBytes($col->length));
+            $raw_data = trim($this->readBytes($col->length) ?? '');
 
             if($raw_data !== ""){
-                $results[] = trim($raw_data);
+                $results[] = trim($raw_data ?? '');
             }
             
         }
@@ -375,7 +375,7 @@ class Table {
 
         for($i = 0; $i<$records; $i++){
             $this->seek($this->headerLength+($i*$this->recordByteLength));
-            fwrite($cache, trim($this->readBytes($this->recordByteLength)) . "\n");
+            fwrite($cache, trim($this->readBytes($this->recordByteLength)) ?? '' . "\n");
         }
 
         $this->close();
@@ -743,17 +743,16 @@ class Table {
                 $columnNames[] = $key;
             }
 
-            if(in_array('UPASS',$columnNames)){
+            /*if(in_array('UPASS',$columnNames)){
                 $columns[] = new Column('password', 'C' , false, 255, 0, false, false, false, false, false, false, count($columns), false, $this->getName(), false);
                 $columnNames[] = 'password';
-            }
+            }*/
 
             $columns[] = new Column('deleted_at', 'C' , false, 19, 0, false, false, false, false, false, false, count($columns), false, $this->getName(), false);
             $columnNames[] = 'deleted_at';
 
             $columns[] = new Column('INDEX', 'C' , false, 15, 0, false, false, false, false, false, false, count($columns), false, $this->getName(), false);
             $columnNames[] = 'INDEX';
-
             return ['columns' => $columns, 'columnNames'=>$columnNames];
     }
 

@@ -8,10 +8,6 @@ Trait ModelTrait
         return \Schema::hasTable($this->getTable());
     }
 
-    public function getIgnoreColumns(){
-        return $this->ignoreColumns? $this->ignoreColumns:[];
-    }
-
     public function getSeeds(){
 
         $s = [];
@@ -20,7 +16,7 @@ Trait ModelTrait
         foreach($seeds AS $seed){
             $x = explode("_",$seed, 2);
             if($x[0] === "dbf"){
-                $path = \Config::get('cp')['files'][$x[1]];
+                $path = \Config::get('reynolds-dbf')['files'][$x[1]];
                 
 			}else if($x[0] === "config"){
                 $path = null;

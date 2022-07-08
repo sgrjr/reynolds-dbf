@@ -31,7 +31,7 @@ class Inventories extends BaseModel implements ModelInterface{
 
     protected $seed = ['dbf_inventories'];
 
-  protected $attributeTypes = [ 
+  /*protected $_attributeTypes = [ 
         "_config"=>"inventory",
         "INDEX"=>["name"=>"INDEX","type"=>"Int","length"=>50],
         "FASTAVAIL"=>["name"=>"FASTAVAIL","type"=>"Char","length"=>3],
@@ -52,12 +52,12 @@ class Inventories extends BaseModel implements ModelInterface{
         "INVNATURE"=>["name"=>"INVNATURE","type"=>"Char","length"=>5],
         "AUTHORKEY"=>["name"=>"AUTHORKEY","type"=>"Char","length"=>20],
         "TITLEKEY"=>["name"=>"TITLEKEY","type"=>"Char","length"=>20],
-        "SUBTITLE"=>["name"=>"SUBTITLE","type"=>"Char","length"=>100],
+        "SUBTITLE"=>["name"=>"SUBTITLE","type"=>"VarBinary","length"=>100],
         "HIGHLIGHT"=>["name"=>"HIGHLIGHT","type"=>"Char","length"=>100],
         "MARC"=>["name"=>"MARC","type"=>"Char","length"=>4],
         "PUBLISHER"=>["name"=>"PUBLISHER","type"=>"Char","length"=>40]
   ];
-
+*/
   public function getCoverArtAttribute(){
     return url("/img/small/" . $this->attributes['ISBN'] . ".jpg");
   }
@@ -180,12 +180,12 @@ class Inventories extends BaseModel implements ModelInterface{
         $ctr = 0;
         foreach($words AS $w){
 
-          if(trim($w) !== ""){
+          if(trim($w ?? '') !== ''){
             if($ctr === 0){
-              $query->where('TITLE','like',"%".trim($w)."%");
+              $query->where('TITLE','like',"%".trim($w ?? '')."%");
               $ctr++;
             }else{
-              $query->orWhere('TITLE','like',"%".trim($w)."%");
+              $query->orWhere('TITLE','like',"%".trim($w ?? '')."%");
             }
             
           }

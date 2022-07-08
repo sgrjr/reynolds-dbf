@@ -1,6 +1,7 @@
 <?php namespace Sreynoldsjr\ReynoldsDbf\Console\Commands;
 
 use Illuminate\Console\Command;
+use Sreynoldsjr\ReynoldsDbf\ReynoldsDbf;
 
 class EmptyTable extends Command
 {
@@ -9,7 +10,7 @@ class EmptyTable extends Command
      *
      * @var string
      */
-    protected $signature = 'rdbf:empty {table}';
+    protected $signature = 'rdbf:empty {table?}';
 
     /**
      * The console command description.
@@ -25,7 +26,10 @@ class EmptyTable extends Command
      */
     public function handle()
     {
+        if(!$this->argument('table')) return ReynoldsDbf::empty();
+
         $this->comment(PHP_EOL."Emptying database Table ".$this->argument('table')."...".PHP_EOL);
-        '\\Sreynoldsjr\\ReynoldsDbf\\Models\\Eloquent\\'. ucfirst($this->argument('table'))::emptyTable();
+        $class_name = '\Sreynoldsjr\ReynoldsDbf\Models\Eloquent\\'  . ucfirst($this->argument('table'));
+        (new $class_name)->emptyTable();
     }
 }

@@ -27,11 +27,6 @@ trait DbfTableTrait {
         return \Schema::hasTable($this->getTable());
     }
 
-    public function getIgnoreColumns(){
-        return $this->ignoreColumns? $this->ignoreColumns:[];
-    }
-
-
     public function getIndexesAttribute(){
         return $this->indexes;
     }

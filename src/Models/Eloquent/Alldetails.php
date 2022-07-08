@@ -12,6 +12,8 @@ class Alldetails extends BaseModel implements ModelInterface{
 
 	use DetailTrait, LevelTrait, SoftDeletes, \Sreynoldsjr\ReynoldsDbf\Models\Traits\InitializeDetailTrait;
 
+    public $fillable = ["JOBBERHOLD","ORDACTION","ORDREASON","TESTTRAN","ORDERNUM","ARTICLE","INVNATURE","SERIES","PUBLISHER","FORMAT","SUBTITLE","CATALOG","STATUS","UNITCOST","TITLEKEY","AUTHORKEY","COMPUTER","TIMESTAMP","DATESTAMP","LASTTOUCH","LASTTIME","LASTDATE","PAGES","OUNCES","PUBDATE","REMOTEADDR","USERPASS","ORDEREDBY","EWHERE","SCARTONNO","TRANSNUM","F856NUM","LASTDATE","PUBLISHER","SOPLAN","CAT","TESTTRAN","deleted_at"];
+    
     public $timestamps = false;
 	protected $table = "alldetails";
     public $migration = "2022_00_00_13_alldetails.php";
@@ -24,10 +26,6 @@ class Alldetails extends BaseModel implements ModelInterface{
           ];
 
           protected $indexes = ["KEY"];
-
- protected $ignoreColumns = [
-    "JOBBERHOLD","ORDACTION","ORDREASON","TESTTRAN","ORDERNUM","ARTICLE","INVNATURE","SERIES","PUBLISHER","FORMAT","SUBTITLE","CATALOG","STATUS","UNITCOST","TITLEKEY","AUTHORKEY","COMPUTER","TIMESTAMP","DATESTAMP","LASTTOUCH","LASTTIME","LASTDATE","PAGES","OUNCES","PUBDATE","REMOTEADDR","USERPASS","ORDEREDBY","EWHERE","SCARTONNO","TRANSNUM","F856NUM","LASTDATE","PUBLISHER","SOPLAN","CAT","TESTTRAN","deleted_at"
- ];
 
     public $foreignKeys = [
         ["TRANSNO","TRANSNO","allheads"], //TRANSNO references TRANSNO on allheads

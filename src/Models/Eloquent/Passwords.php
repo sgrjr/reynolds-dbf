@@ -29,7 +29,7 @@ class Passwords extends BaseModel implements ModelInterface {
     SoftDeletes,
     InitializePasswordsTrait;
 
-    protected $fillable = ['remember_token', 'KEY', 'UPASS','user_pass_unsafe', 'MPASS', 'UNAME', 'SNAME', 'EMAIL', 'PIC', 'COMPANY', 'SEX', 'FIRST', 'MIDNAME', 'LAST', 'ARTICLE', 'TITLE', 'ORGNAME', 'STREET', 'SECONDARY', 'CITY', 'CARTICLE', 'STATE', 'COUNTRY', 'POSTCODE', 'NATURE', 'VOICEPHONE', 'EXTENSION', 'FAXPHONE', 'COMMCODE', 'CANBILL', 'TAXEXEMPT', 'SENDEMCONF', 'INDEX', 'deleted_at', 'created_at', 'updated_at','token'];
+    protected $fillable = ['KEY', 'UPASS', 'MPASS', 'UNAME', 'SNAME', 'EMAIL', 'PIC', 'COMPANY', 'SEX', 'FIRST', 'MIDNAME', 'LAST', 'ARTICLE', 'TITLE', 'ORGNAME', 'STREET', 'SECONDARY', 'CITY', 'CARTICLE', 'STATE', 'COUNTRY', 'POSTCODE', 'NATURE', 'VOICEPHONE', 'EXTENSION', 'FAXPHONE', 'COMMCODE', 'CANBILL', 'TAXEXEMPT', 'SENDEMCONF', "LOGINS","DATEUPDATE","DATESTAMP","MDEPT","MFNAME","TSIGNOFF","TIMESTAMP","TIMEUPDATE","PASSCHANGE","PRINTQUE","SEARCHBY","MULTIBUY","SORTBY","FULLVIEW","SKIPBOUGHT","OUTOFPRINT","OPROCESS","OBEST","OADDTL","OVIEW","ORHIST","OINVO","EXTZN","INSOS","INREG","LINVO","NOEMAILS","ADVERTISE","PROMOTION","PASSDATE","EMCHANGE",'INDEX', 'deleted_at', 'created_at', 'updated_at'];
 
     /**
      * The attributes that should be hidden for arrays.
@@ -37,7 +37,6 @@ class Passwords extends BaseModel implements ModelInterface {
      * @var array
      */
         protected $hidden = [
-            'remember_token'
         ];
 
     /**
@@ -67,24 +66,12 @@ class Passwords extends BaseModel implements ModelInterface {
 
       protected $attributeTypes = [
         "_config"=>"passwords",
-        "user_pass_unsafe"=>[
-            'name' => 'user_pass_unsafe',
-            'type' => 'Char',
-            'length' => 128
-           ],
-        'remember_token'=>[
-            'name' => 'remember_token',
-            'type' => 'Char',
-            'length' => 128
-           ],
        'timestamps'=> true
       ];
 
     protected $casts = [
         'DATESTAMP' => 'date',
     ];
-
-     public $ignoreColumns = ["LOGINS","DATEUPDATE","DATESTAMP","MDEPT","MFNAME","TSIGNOFF","TIMESTAMP","TIMEUPDATE","PASSCHANGE","PRINTQUE","SEARCHBY","MULTIBUY","SORTBY","FULLVIEW","SKIPBOUGHT","OUTOFPRINT","OPROCESS","OBEST","OADDTL","OVIEW","ORHIST","OINVO","EXTZN","INSOS","INREG","LINVO","NOEMAILS","ADVERTISE","PROMOTION","PASSDATE","EMCHANGE"];
 
    public function getIndexesAttribute(){
     return ["KEY"];
@@ -173,8 +160,6 @@ class Passwords extends BaseModel implements ModelInterface {
 
   public function passwordsSchema($table){
 		$table->foreign('KEY')->references('KEY')->on('vendors');
-        $table->string('api_token')->unique()->nullable()->default(null);
-        $table->string("remember_token")->nullable();
         $table->timestamps();
 
 		return $table;
@@ -238,66 +223,7 @@ public function getMemo(){
        return $this->UPASS;
     }
 
-    public function generateToken($abilities=['*']){
-      $token = $this->createToken("authToken", $abilities);
-      return $token;
-    }
-
-    public static function arrayToModel($attributes){
-       $user = new static();
-
-      foreach($attributes AS $key => $val){
-
-        switch($key){
-
-          case "upass":
-          case "UPASS":
-          case "PASSWORD":
-          case "password":
-            $user->setPassword($val);
-            break;
-
-
-          case 'uname':
-            $user->name = $val;
-            break;
-
-          case 'EMAIL':
-          case 'email':
-            $user->email = $val;
-            break;
-
-          case 'key':
-          case 'KEY':
-            $user->key = $val;
-            break;
-
-          case 'token':
-          case 'api_token':
-                $user->api_token = $val;
-                break;
-
-          default:
-            $user->$key = $val;
-
-        }
-
-      }
-      
-      $user->api_token = Str::random(60);
-      return $user;
-
-    }
-    public static function makeUser($attributes){
-
-      $user = $this::arrayToModel($attributes);
-
-      $user->save();
-
-      return $user;
-    }
     public function getIsCustomerAttribute(){
-
 
       $hasCpEmail = strpos($this->EMAIL, "centerpointlargeprint");
       $isSuper = strpos($this->EMAIL, "deliverance.me");
@@ -307,7 +233,6 @@ public function getMemo(){
        } else {
           return true;
         }
-      
     }
 
         public function updateProfilePhoto($_, $args){

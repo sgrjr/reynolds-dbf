@@ -10,34 +10,64 @@ Trait ManageTableTrait
 {
 
 	 public function dropTable(){
+	 	
 		\DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-	    \Schema::dropIfExists( $this->getTable() );
+	    $result = \Schema::dropIfExists( $this->getTable() );
+
+	    if(!Schema::hasTable($this->getTable())){
+	    	$this->w("<fg=green>[".$this->getTable()."] Table dropped successfully.");
+	    }else{
+	    	$this->w("<fg=red>[".$this->getTable()."] Table not dropped.");
+	    }
 		\DB::statement('SET FOREIGN_KEY_CHECKS=1;');
-
 		$this->migrationDelete();
-
 		return $this;
 	}
 
+	public function w($message, $line = true){
+		$output = new ConsoleOutput();
+		$line? $output->writeln($message):$output->write($message);
+	}
+
 	public function migrationDelete(){
-		$deleted = DB::delete('delete from mirgrations where migration = "'.str_replace(".php",'',$this->migration).'"');
+		$migration_name = str_replace(".php",'', $this->migration);
+		$deleted = DB::delete('delete from migrations where migration = "'.$migration_name.'"');
+
+		$exists_still = DB::table('migrations')->where('migration',$migration_name)->exists();
+
+		if($exists_still){
+			$this->w("<fg=red>Migration still exists [".$this->getTable()."].");
+		}else{
+			$this->w("<fg=green>Migration removal run for [".$this->getTable()."].");
+		}
+
+		
 		return $this;
 	}
 
     public function emptyTable(){
+    	$output = new ConsoleOutput();
     	if( \Schema::hasTable($this->getTable() ) ){
     		\DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-	    	static::truncate();
+	    	$this->truncate();
+	    	$this->w("<fg=green>Emptied table [".$this->getTable()."] successful.");
 			\DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+    	}else{
+    		$this->w("<fg=red>Emptying table [".$this->getTable()."] failed.");
     	}
-    	
-	    return $this;
+    	return $this;
     }
 
-    public static function migrate(){
-    	$that = new static;
-    	\Artisan::call('migrate --path=/vendor/sreynoldsjr/reynolds-dbf/database/migrations/' . $that->migration);
+    public function migrate(){
+    	$result = \Artisan::call('migrate --path=/vendor/sreynoldsjr/reynolds-dbf/database/migrations/' . $this->migration);
+
+    	if(Schema::hasTable($this->getTable())){
+    		$this->w("<fg=green>[".$this->getTable()."] Migration ran successful.");
+    	}else{
+    		$this->w("<fg=red>[".$this->getTable()."] Migration not run.");
+    	}
     	////php artisan migrate --path=/database/migrations/full_migration_file_name_migration.php
+    	return $this;
     }
 
     public function createTable(){
@@ -49,9 +79,11 @@ Trait ManageTableTrait
 		Schema::create($this->getTable(),function($table) {
 			$table->increments('id');
             $table = Misc::setUpTableFromHeaders($table, $this->headers, $this);
-            $table->charset = 'utf8';
-			$table->collation = 'utf8_unicode_ci';			
-		});		
+            $table->charset = 'utf8mb4';
+			$table->collation = 'utf8mb4_unicode_ci';				
+		});
+
+		$this->w("<fg=green>[".$this->getTable()."] Table created successful.");		
 
 		return $this;
 	}
@@ -65,6 +97,7 @@ Trait ManageTableTrait
         	}
 		});	
 		Schema::enableForeignKeyConstraints();
+		$this->w("<fg=green>[".$this->getTable()."] Foreign keys added successful.");
 		return $this;
 	}
 
@@ -76,7 +109,8 @@ Trait ManageTableTrait
 				$k = $fk[0];
             	$table->dropForeign([$k]);
         	}
-		});	
+		});
+		$this->w("<fg=green>[".$this->getTable()."] Foreign keys dropped successful.");
 		return $this;
     }
 
@@ -84,40 +118,19 @@ Trait ManageTableTrait
         return ($this->foreignKeys)? $this->foreignKeys:[];
     }
 
-	public function seedTable(){
-		
-    	$this->emptyTable();
+	public function seedTable($force = false){
 
-        foreach($this->getSeeds() AS $seed){ // array[type,id,path]
+		if($force === false && DB::table($this->getTable())->count() > 0){
+			$this->w("<fg=red>[".$this->getTable()."] Table not seed because it was already seeded.");
+			return false;	
+		} 
 
-			switch($seed['type']){
-				
-				case 'xml':
-					foreach($this->xml()->all()->records AS $item){
-						$item->save();
-					}
-					break;
-
-				case 'config':
-					$conf = Config::get('cp');
-
-					foreach($conf[$seed['id']] AS $mdl){
-						$model = static::create($mdl);
-					}
-					break;
-
-				case 'dbf':
-					$this->seedFromDBF();
-					$this->doAfterSeed();
-					break;
-				default:
-					break;
-			}
-
-		}
-
+    	$this
+    		->emptyTable()
+    		->seedFromConfig()
+    		->seedFromDBF()
+    		->doAfterSeed();
 		return $this;
-
 	}
 
 	public function entries($params){
@@ -133,7 +146,7 @@ Trait ManageTableTrait
             }
 
             while ($record=$file->nextRecord() ) {
-                $rd = $record->getData($this->getIgnoreColumns());
+                $rd = $record->getData();
                 if(Compare::test($record->getData(), $params)){
                 	
                 	if($params->testsComparison == "COUNT"){
@@ -149,19 +162,43 @@ Trait ManageTableTrait
 
             return $bag;
 
+	}
+
+	public function seedFromConfig(){
+		$conf = Config::get('reynolds-dbf');
+
+		if(!isset($conf['seeds']) || !isset($conf['seeds'][$this->getTable()])){
+			$this->w("<fg=red>[".$this->getTable()."] No seeds in config.");
+			return $this;
+		}
+
+		$this->w("<fg=red>[".$this->getTable()."] Beginning to seed from Config: ");
+
+		foreach($conf['seeds'][$this->getTable()] AS $k=>$v){
+			if($c === $this->getTable()){
+				foreach($v as $props){
+					$this->create($props);
+					$this->w(".", false);
+				}
+			}
+			
+		}
+
+		return $this;
 	}	
 
 	public function seedFromDBF(){
             ini_set('memory_limit','512M');
-            $output = new ConsoleOutput();
             \DB::statement('SET FOREIGN_KEY_CHECKS=0;');
 
+            $output = new ConsoleOutput();
+            $iteration_limit = 400;
             $file = $this->dbf()->database();
             $file->open();
             
             	$bag = [];
             	$count = $file->count();
-            	$output->write("<fg=green>STARTING TO IMPORT: " . $count . " RECORDS...");
+            	$output->write("<fg=green>STARTING TO IMPORT from DBF: " . $count . " RECORDS...");
 
             	$progressBar = new ProgressBar($output, $count);
 				$progressBar->setBarCharacter('<fg=green>⚬</>');
@@ -172,11 +209,12 @@ Trait ManageTableTrait
             	$progressBar->start();
 
 	            while ($record=$file->nextRecord() ) {
-	                $rd = $record->getData($this->getIgnoreColumns());
+	                $rd = $record->getData();
 	                $bag[] = $rd;
 	                $progressBar->setMessage($this->getTable() . " [" . $rd["INDEX"] ."]", 'status'); // set the `status` value
 	                $progressBar->advance();
-	                if(count($bag) > 400){
+
+	                if(count($bag) === $iteration_limit){
 	                    $this->insert($bag);
 	                    $bag = [];
 	                }
@@ -202,7 +240,7 @@ Trait ManageTableTrait
 		//
 	}
 
-	public function logger($message){
+	public static function logger($message){
 		$logger = new ConsoleOutput();
 		$logger->writeLn($message);
 

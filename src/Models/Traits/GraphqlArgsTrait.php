@@ -28,7 +28,7 @@ trait GraphqlArgsTrait {
                         $f[1]=$v;
                     }
                     
-                    $val = trim($f[1]);
+                    $val = trim($f[1] ?? '');
                     if($val === ""){$val = null;}
                     if($val === "TRUE"){$val = true;}
                     if($val === "true"){$val = true;}

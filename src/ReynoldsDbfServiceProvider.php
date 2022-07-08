@@ -9,7 +9,7 @@ use Sreynoldsjr\ReynoldsDbf\Console\Commands\DropTable;
 use Sreynoldsjr\ReynoldsDbf\Console\Commands\EmptyTable;
 use Sreynoldsjr\ReynoldsDbf\Console\Commands\SeedTable;
 use Sreynoldsjr\ReynoldsDbf\Console\Commands\UpdateTable;
-use Sreynoldsjr\ReynoldsDbf\Console\Commands\BuildUserCache;
+use Sreynoldsjr\ReynoldsDbf\Console\Commands\BuildCache;
 use Sreynoldsjr\ReynoldsDbf\ReynoldsDbf;
 
 class ReynoldsDbfServiceProvider extends ServiceProvider
@@ -46,7 +46,7 @@ class ReynoldsDbfServiceProvider extends ServiceProvider
                 EmptyTable::class,
                 UpdateTable::class,
                 SeedTable::class,
-                BuildUserCache::class
+                BuildCache::class
             ]);
         }
     }

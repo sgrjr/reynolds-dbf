@@ -42,7 +42,8 @@ class Column extends \ArrayObject {
         $colIndex,
         $bytePos,
         $table_name,
-        $original = true
+        $original = true,
+        $nullable = true
     ) {
         $this->rawname=$name;
         $this->name=preg_replace('/[^a-zA-Z0-9-_\.]/','', strpos($name,"0x00")!==false?substr($name,0,strpos($name,"0x00")):$name);
@@ -56,6 +57,7 @@ class Column extends \ArrayObject {
         $this->bytePos=$bytePos;
         $this->colIndex=$colIndex;
         $this->original = $original;
+        $this->nullable = $nullable;
 
         $this->container = [
             "name"=>$this->getName(),
@@ -63,13 +65,13 @@ class Column extends \ArrayObject {
             "type"=>$this->getType(),
             "decimal_count" => $this->getDecimalCount(),
             "mysql_type"=>$this->getMySQLType(),
-            "nullable" => true
+            "nullable" => $nullable
         ];
 
         $this->table_name = $table_name;
     }
 
-    public function offsetSet($offset, $value) {
+    public function offsetSet($offset, $value):void {
         if (is_null($offset)) {
             $this->container[] = $value;
         } else {
@@ -77,15 +79,15 @@ class Column extends \ArrayObject {
         }
     }
 
-    public function offsetExists($offset) {
+    public function offsetExists($offset):bool {
         return isset($this->container[$offset]);
     }
 
-    public function offsetUnset($offset) {
+    public function offsetUnset($offset):void {
         unset($this->container[$offset]);
     }
 
-    public function offsetGet($offset) {
+    public function offsetGet($offset):mixed {
         return isset($this->container[$offset]) ? $this->container[$offset] : null;
     }
 
@@ -280,6 +282,7 @@ class Column extends \ArrayObject {
             "M" => "Binary", //M  -   -   Memo
             "N" => "Int", //N   N   d   Numeric field of width n
             "T" => "Datetime", //T  -   -   DateTime,
+            "TIMESTAMP" => "TIMESTAMP",
             "0" => "IGNORE" //// ignore this field
         ];
 
