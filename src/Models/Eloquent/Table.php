@@ -59,6 +59,10 @@ class Table {
         return $data;
     }
 
+     public function getMeta($toArray = false){
+       return (new \Sreynoldsjr\ReynoldsDbf\Models\Table)->meta($toArray);
+    }
+
 }
 
 /*function getColumnNames() {
