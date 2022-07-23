@@ -1,3 +1,4 @@
+
 <?php namespace Sreynoldsjr\ReynoldsDbf\Console\Commands;
 
 use Illuminate\Console\Command;
@@ -28,9 +29,16 @@ class Install extends Command
     public function handle()
     {
         $this->comment(PHP_EOL."Creating All Database Tables from DBFS...".PHP_EOL);
-        ReynoldsDbf::install($this->option('seed'),$this->option('force'));
+        
+        // Build the tables
+        ReynoldsDbf::install($this->option('force'));
+        
         // NUCLEAR FLAG
         $force = $this->option('force')? ' --reset':'';
+        
+        // Seed the Tables
+        if($this->option('seed')) ReynoldsDbf::seed($this->option('force'));
+
         if($this->option('teams')) Artisan::call('teams:seed --reset' . $force);
         //Cache
         if($this->option('cache')){
