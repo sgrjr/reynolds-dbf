@@ -28,7 +28,7 @@ class Install extends Command
     public function handle()
     {
 
-        if($this->option('force')) return $this->freshInstall();
+        if($this->option('fresh')) return $this->freshInstall();
 
         $this->comment(PHP_EOL."Creating All Database Tables from DBFS...".PHP_EOL);
             
