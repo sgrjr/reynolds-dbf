@@ -57,7 +57,7 @@ public function initialize($vendor = false, $user = false){ // vendor should be 
 
   private function validateInitialize(){
 
-     if(!isset($this->attributes['KEY']) || $this->attributes['KEY'] === ""){
+     /*if(!isset($this->attributes['KEY']) || $this->attributes['KEY'] === ""){
         $message = 'Model MUST be given a KEY. given: ' . json_encode($this->getAttributes());
         throw new \ErrorException($message);
      }
@@ -73,7 +73,7 @@ public function initialize($vendor = false, $user = false){ // vendor should be 
 
           throw new \ErrorException($message);
        }
-     }
+     }*/
   }
 
   public function getRecentOrder($vendor){
@@ -181,7 +181,7 @@ public function initialize($vendor = false, $user = false){ // vendor should be 
   }
 
   public static function generateRemoteAddr($key = false){
-
+    if(is_object($key)) $key = $key->value;
     if($key){
       $uid=  time();//uniqid();
       $zip = substr($key,0,5);

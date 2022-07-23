@@ -4,9 +4,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Sreynoldsjr\ReynoldsDbf\Models\Eloquent\Traits\DetailTrait;
 use Sreynoldsjr\ReynoldsDbf\Models\Traits\LevelTrait;
 use Sreynoldsjr\ReynoldsDbf\Models\Eloquent\Interfaces\ModelInterface;
-use Sreynoldsjr\ReynoldsDbf\Models\Eloquent\Models\Backheads;
-use Sreynoldsjr\ReynoldsDbf\Models\Eloquent\Models\Vendors;
-use Sreynoldsjr\ReynoldsDbf\Models\Eloquent\Models\Inventories;
+use Sreynoldsjr\ReynoldsDbf\Models\Eloquent\Backheads;
+use Sreynoldsjr\ReynoldsDbf\Models\Eloquent\Vendors;
+use Sreynoldsjr\ReynoldsDbf\Models\Eloquent\Inventories;
 
 class Backdetails extends BaseModel implements ModelInterface {
 

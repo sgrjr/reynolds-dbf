@@ -110,8 +110,9 @@ class Record {
         if(!isset($this->data["deleted_at"])){
             $this->data["deleted_at"] = DataEntry::make($this->deleted_at, $this->getColumnByName("deleted_at"));
         }
-
-        if(trim($this->data['INDEX']->value) === ""){
+        if(!isset($this->data['INDEX']->value) && is_string($this->data['INDEX']) && $this->data['INDEX'] === ""){
+            $this->data['INDEX'] = $this->getRecordIndex();
+        } else if(isset($this->data['INDEX']->value) && trim($this->data['INDEX']->value) === ""){
             $this->data['INDEX']->value = $this->getRecordIndex();
         }
     }

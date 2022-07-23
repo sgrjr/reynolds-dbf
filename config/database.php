@@ -43,14 +43,6 @@ return [
             'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
         ],
 
-      'dbf' => [
-            'driver' => 'mysql',
-            'url' => env('DATABASE_URL'),
-            'database' => env('DB_DATABASE', database_path('database.sqlite')),
-            'prefix' => '',
-            'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
-        ],
-
         'mysql' => [
             'driver' => 'mysql',
             'url' => env('DATABASE_URL'),
@@ -71,36 +63,15 @@ return [
             ]) : [],
         ],
 
-        'mysql_ui' => [
+        'testing' => [
             'driver' => 'mysql',
-            'url' => env('UI_DATABASE_URL'),
-            'host' => env('UI_DB_HOST', '127.0.0.1'),
-            'port' => env('UI_DB_PORT', '3306'),
-            'database' => env('UI_DB_DATABASE', 'forge'),
-            'username' => env('UI_DB_USERNAME', 'forge'),
-            'password' => env('UI_DB_PASSWORD', ''),
-            'unix_socket' => env('UI_DB_SOCKET', ''),
-            'charset' => 'utf8mb4',
-            'collation' => 'utf8mb4_unicode_ci',
-            'prefix' => '',
-            'prefix_indexes' => true,
-            'strict' => true,
-            'engine' => null,
-            'options' => extension_loaded('pdo_mysql') ? array_filter([
-                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
-            ]) : [],
-        ],
-
-
-        'mysql_staff' => [
-            'driver' => 'mysql',
-            'url' => env('STAFF_DATABASE_URL'),
-            'host' => env('STAFF_DB_HOST', '127.0.0.1'),
-            'port' => env('STAFF_DB_PORT', '3306'),
-            'database' => env('STAFF_DB_DATABASE', 'forge'),
-            'username' => env('STAFF_DB_USERNAME', 'forge'),
-            'password' => env('STAFF_DB_PASSWORD', ''),
-            'unix_socket' => env('STAFF_DB_SOCKET', ''),
+            'url' => env('TEST_DATABASE_URL'),
+            'host' => env('TEST_DB_HOST', '127.0.0.1'),
+            'port' => env('TEST_DB_PORT', '3306'),
+            'database' => env('TEST_DB_DATABASE', 'forge666'),
+            'username' => env('TEST_DB_USERNAME', 'forge666'),
+            'password' => env('TEST_DB_PASSWORD', ''),
+            'unix_socket' => env('TEST_DB_SOCKET', ''),
             'charset' => 'utf8mb4',
             'collation' => 'utf8mb4_unicode_ci',
             'prefix' => '',

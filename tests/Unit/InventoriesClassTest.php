@@ -76,6 +76,7 @@ class InventoriesClassTest extends TestCase
 
         $result = Inventories::query()->graphql($query)->paginate($query["first"],[],'page',$query["page"]);
         $item = $result->first();
+
          $this->assertEquals($item["INDEX"], 101);
     }
 

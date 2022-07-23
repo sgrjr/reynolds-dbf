@@ -20,7 +20,7 @@ public function __get($key)
     }else{
         $att = $this->attributes[$key];
 
-        if(is_object($att)){
+        if(is_object($att) && isset($att->value)){
             return $att->value;
         }else{
             return $att;

@@ -99,6 +99,11 @@ class BaseModel extends Model
         return $this->dbf()->database;
     }
 
+    public static function unique($column)
+    {
+        return (new static)->select($column)->distinct()->get();
+    }
+
     /**
      * Overwriting the provided method in Laravel Eloquent
      * Dynamically retrieve attributes on the model.

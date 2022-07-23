@@ -3,7 +3,7 @@
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Sreynoldsjr\ReynoldsDbf\Models\Eloquent\Traits\HeadTrait;
 use Sreynoldsjr\ReynoldsDbf\Models\Eloquent\Interfaces\ModelInterface;
-use Sreynoldsjr\ReynoldsDbf\Models\Eloquent\Models\Ancientdetails;
+use Sreynoldsjr\ReynoldsDbf\Models\Eloquent\Ancientdetails;
 
 class Ancientheads extends BaseModel implements ModelInterface {
 

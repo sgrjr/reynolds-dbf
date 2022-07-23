@@ -27,7 +27,7 @@ class WebheadsClassTest extends TestCase
     public function testWebheadClass()
     {   
         $model = new Webheads();
-        $this->assertSame(count($model->columns) > 0, true);
+        $this->assertTrue(count($model->database()->getMeta()) > 0);
     }
 
     public function testNewRemoteaddr()
@@ -87,7 +87,6 @@ class WebheadsClassTest extends TestCase
 
     public function disabled_compare_before_after_write_webhead(){
         //Webheads::cache();
-
         Webheads::rebuildFromCache();
     }
 }

@@ -138,6 +138,11 @@ class Table {
         return $this;
     }
 
+    public function getMemoAttribute(){
+        if(!isset($this->memo)) $this->setMemoTable();
+        return $this->memo;
+    }
+
 	function readHeader() {
 
         $this->version = $this->readChar();
