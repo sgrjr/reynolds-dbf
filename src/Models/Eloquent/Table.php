@@ -60,7 +60,7 @@ class Table {
     }
 
      public function getMeta($toArray = false){
-       return (new \Sreynoldsjr\ReynoldsDbf\Models\Table)->meta($toArray);
+       return $this->model->dbf()->meta($toArray);
     }
 
 }
