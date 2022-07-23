@@ -9,7 +9,7 @@ class Booktexts extends BaseModel implements ModelInterface {
 
 use SoftDeletes, InitializeBooktextsTrait;
 
-protected $appends = [];
+protected $appends = ['body'];
 public $fillable = ['COMPUTER','DATESTAMP', 'deleted_at', 'FILENAME', 'INDEX', 'ISTHERE', 'KEY', 'LASTDATE', 'LASTTIME', 'LASTTOUCH', 'PUBDATE', 'SUBJECT', 'SYNOPSIS', 'TIMESTAMP'];
 
 protected $table = "booktexts";
@@ -46,14 +46,9 @@ protected $table = "booktexts";
       return $this->belongsTo(Inventories::class,'KEY','ISBN');
   }
   
-
-	public function getSummaryAttribute(){
-		return $this->attributes["SYNOPSIS"];
-	}
-
 public function getBodyAttribute(){
   $x = new \stdclass;
-
+      
   switch($this->SUBJECT){
           case "@PLCOMMENTA:":
               $x->type = "commenta";
@@ -78,7 +73,7 @@ public function getBodyAttribute(){
               $x->subject = $this->SUBJECT;
       }
 
-      $x->body = $this->summary;
+      $x->body = $this->SYNOPSIS_MEMO;
 
       return $x;
 

@@ -10,7 +10,7 @@ class Backheads extends BaseModel implements ModelInterface {
 	use HeadTrait, SoftDeletes, \Sreynoldsjr\ReynoldsDbf\Models\Traits\InitializeHeadTrait;
 
 	protected $table = "backheads";
-	protected $appends = [];
+	protected $appends = ['freeShipping'];
   public $migration = "2022_00_00_06_backheads.php";
 	protected $dbfPrimaryKey = 'TRANSNO';
 	  protected $seed = [
@@ -20,7 +20,8 @@ class Backheads extends BaseModel implements ModelInterface {
   protected $attributeTypes = [ 
     "_config"=>"backheads",
   ];	
-
+    protected $with = [];
+    protected $withCount = ['items'];
   public function items(){
     return $this->hasMany(Backdetails::class,'TRANSNO','TRANSNO');
   }

@@ -314,7 +314,31 @@ public function getMemo(){
     }
 
     public function newCart(){
-        return Webhead::newCart($this);
+        $vendor = [
+            'KEY'=>$this->vendor->KEY,
+            'ARTICLE'=>$this->vendor->ARTICLE,
+            'ORGNAME'=>$this->vendor->ORGNAME,
+            'STREET'=>$this->vendor->STREET,
+            'SECONDARY'=>$this->vendor->SECONDARY,
+            'CARTICLE'=>$this->vendor->CARTICLE,
+            'CITY'=>$this->vendor->CITY,
+            'STATE'=>$this->vendor->STATE,
+            'ZIP5'=>$this->vendor->ZIP5,
+            'VOICEPHONE'=>$this->vendor->VOICEPHONE,
+            'FAXPHONE'=>$this->vendor->FAXPHONE,
+            'EMAIL'=>$this->vendor->EMAIL,
+            'COUNTRY'=>$this->vendor->COUNTRY
+        ];
+
+        $user = [
+            'UNAME'=> $this->UNAME,
+            'EMAIL'=> $this->EMAIL,
+            'UPASS'=> $this->UPASS,
+            'KEY'=> $this->KEY,
+        ];
+
+       $cart = Webheads::newCart($vendor, $user);
+       return $cart;
     }
 
     public function addItemToCart($cart, $args){
@@ -382,10 +406,12 @@ public function getMemo(){
 
         $cart = $this->carts()->where("REMOTEADDR", $remoteaddr)->first();
 
-        foreach($cart->items AS $item){
-          if($item->PROD_NO === $isbn){
-            $this->deleteThis($item);
-          }
+        if($cart){
+            foreach($cart->items AS $item){
+              if($item->PROD_NO === $isbn){
+                $this->deleteThis($item);
+              }
+            }
         }
 
         return $this;
@@ -400,7 +426,7 @@ public function getMemo(){
         }else{
             $entries = [];
         }
-       
+
         unset($attributes['REMOTEADDR']);
         unset($attributes['PROD_NO']);
         unset($attributes['id']);

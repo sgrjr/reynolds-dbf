@@ -39,16 +39,18 @@ class UserTitleData {
 	}
 
 	private function getPurchased(){
+		if(!$this->user) return false;
 		return in_array($this->title->ISBN, $this->user->vendor->isbns);
 	}
 
 	private function calcSalePrice(){
+
 		if($this->title->FLATPRICE >= 1.00){
 			$this->so->SALEPRICE = $this->title->FLATPRICE;
 		}else{
 			$this->so->SALEPRICE = round($this->title->LISTPRICE - ($this->so->DISC * $this->title->LISTPRICE),2);
 		}
-		
+
 		return $this;
 	}
 
@@ -58,7 +60,7 @@ class UserTitleData {
 
 	private function calcstandingorder(){
 		$ignore_discount = false;
-		if($this->title->INVNATURE === "TRADE"){return $this;}
+		if(!$this->user || $this->title->INVNATURE === "TRADE"){return $this;}
 		if($this->title->FLATPRICE >= 1.00){ $this->so->DISC = 0; $ignore_discount = true;}
 
 	    foreach($this->user->vendor->standingOrders AS $standingOrder){
@@ -69,6 +71,17 @@ class UserTitleData {
 	      }
 	    }
 	    return $this;
+
+	}
+
+	public function props(){
+		return (object) [
+          "price"=> $this->price,
+          "hasPurchased"=>$this->purchased,
+          "isOnStandingOrder"=>$this->onstandingorder,
+          "discount"=>$this->discount,
+          "isbn"=>$this->isbn
+        ];
 
 	}
 

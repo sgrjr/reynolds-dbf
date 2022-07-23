@@ -162,4 +162,21 @@ trait HeadTrait {
 		  return $totaling;
 		}
 
+		public function getFreeShippingAttribute(){
+			  
+			  $freeShipping = false;
+
+        if($this->items()->count() > 4) $freeShipping = true;
+
+        $ctr = 0;
+        if(!$freeShipping){
+            foreach($this->items AS $item){
+                $ctr += $item->REQUESTED;
+            }
+            if($ctr > 4) $freeShipping = true;
+        }   
+        
+        return $freeShipping;
+		}
+
 }

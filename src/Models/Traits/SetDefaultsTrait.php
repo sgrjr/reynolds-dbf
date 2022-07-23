@@ -20,7 +20,7 @@ trait SetDefaultsTrait {
     }
 
     public function transformToDataEntry($col, $value){
-
+        if(!is_string($value) && $value != null) return $value;
         $de = DataEntry::make($value, $this->database()->getColumnByName($col));
         return $de;
     }

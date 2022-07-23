@@ -195,7 +195,7 @@ class Table {
 
         if ($this->recordPos+1 >= $this->recordCount) return false;
         $this->recordPos++;
-        
+
         $this->record = $this->moveTo($this->recordPos);
         
         if ($this->record->isDeleted()) {
@@ -516,7 +516,7 @@ class Table {
 
     function save($attributes) {
         $this->open();
-        
+
        if(isset($attributes["INDEX"]) && $attributes["INDEX"] !== null && $attributes["INDEX"] !== ""){
         $attributes["INDEX"] = intval($attributes["INDEX"]);
         $this->moveTo($attributes["INDEX"]);
@@ -527,7 +527,6 @@ class Table {
         $this->record->copyFrom($attributes);
         $this->writeRecord();
         $this->close();
-
        return $this->record->getData();
     }
 
@@ -624,7 +623,7 @@ class Table {
         if ($withHeader) {
             $result .= "<tr>\n";
             foreach ($this->getColumns() as $i=>$c) {
-                $result .= "<th $thArgs >".$c->getName()."</th>\n";
+                $result .= "<th $thArgs >".$c->name."</th>\n";
             }
             $result .= "</tr>\n";
         }
@@ -728,12 +727,12 @@ class Table {
                 );
 
                 $bytepos+=$column->getLength();
-                $columnNames[$i] = $column->getName();
+                $columnNames[$i] = $column->name;
                 $columns[$i] = $column;
 
                 if($column->getType() === $this->getGlobalFieldTypes()->DBFFIELD_TYPE_MEMO){
-                    $memo_column_name = $column->getName() . "_MEMO";
-                    $appendToEnd[ $memo_column_name] = new Column($memo_column_name, 'C' , false, 19, 0, false, false, false, false, false, false, count($columns), false, $this->getName(), false);
+                    $memo_column_name = $column->name . "_MEMO";
+                    $appendToEnd[ $memo_column_name] = new Column($memo_column_name, 'TEXT' , false, 65535, 0, false, false, false, false, false, false, count($columns), false, $this->getName(), false);
                 }
 
             }

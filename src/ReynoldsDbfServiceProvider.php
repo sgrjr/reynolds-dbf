@@ -9,8 +9,11 @@ use Sreynoldsjr\ReynoldsDbf\Console\Commands\DropTable;
 use Sreynoldsjr\ReynoldsDbf\Console\Commands\EmptyTable;
 use Sreynoldsjr\ReynoldsDbf\Console\Commands\SeedTable;
 use Sreynoldsjr\ReynoldsDbf\Console\Commands\UpdateTable;
+use Sreynoldsjr\ReynoldsDbf\Console\Commands\RebuildTable;
 use Sreynoldsjr\ReynoldsDbf\Console\Commands\BuildCache;
 use Sreynoldsjr\ReynoldsDbf\ReynoldsDbf;
+
+use Sreynoldsjr\ReynoldsDbf\Models\Eloquent\Vendors;
 
 class ReynoldsDbfServiceProvider extends ServiceProvider
 {
@@ -46,6 +49,7 @@ class ReynoldsDbfServiceProvider extends ServiceProvider
                 EmptyTable::class,
                 UpdateTable::class,
                 SeedTable::class,
+                RebuildTable::class,
                 BuildCache::class
             ]);
         }
@@ -67,5 +71,6 @@ class ReynoldsDbfServiceProvider extends ServiceProvider
         });
         
         $this->app->alias(ReynoldsDbf::class, 'reynolds-dbf');
+        $this->app->singleton(Vendors::class);
     }
 }

@@ -76,11 +76,27 @@ class ReynoldsDbf
         return $data;
     }
 
-    public static function install(){
+    public static function install($seed = false, $force = false){
         $dbf = new static();
 
         foreach($dbf->eloquent AS $model){
-            $model->migrate();
+
+            if($seed && $force){
+                $model->rebuildTable($force);
+            }else{
+                if($force) $model->dropTable();
+                $model->migrate();
+                if($seed) null;//$model->seedTable();
+            }
+            
+        }
+    }
+
+     public static function rebuild(){
+        $dbf = new static();
+
+        foreach($dbf->eloquent AS $model){
+            $model->rebuildTable();
         }
     }
 

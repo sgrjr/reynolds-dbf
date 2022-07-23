@@ -2,6 +2,7 @@
 
 use Illuminate\Console\Command;
 use \Sreynoldsjr\ReynoldsDbf\ReynoldsDbf;
+use Artisan;
 
 class Install extends Command
 {
@@ -10,7 +11,7 @@ class Install extends Command
      *
      * @var string
      */
-    protected $signature = 'rdbf:install';
+    protected $signature = 'rdbf:install {--seed} {--force} {--teams} {--cache}';
 
     /**
      * The console command description.
@@ -27,7 +28,15 @@ class Install extends Command
     public function handle()
     {
         $this->comment(PHP_EOL."Creating All Database Tables from DBFS...".PHP_EOL);
-        ReynoldsDbf::install();
+        ReynoldsDbf::install($this->option('seed'),$this->option('force'));
+        // NUCLEAR FLAG
+        $force = $this->option('force')? ' --reset':'';
+        if($this->option('teams')) Artisan::call('teams:seed --reset' . $force);
+        //Cache
+        if($this->option('cache')){
+            Artisan::call('rdbf:cache');
+        } 
+
         $this->comment(PHP_EOL."Creating all tables complete.".PHP_EOL);
     }
 }

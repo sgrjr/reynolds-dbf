@@ -28,7 +28,37 @@ class Webdetails extends BaseModel implements ModelInterface {
         "_config"=>"webdetails",
     ];
 
-    protected $fillable = ["REQUESTED", "REMOTEADDR", "PROD_NO", "INDEX", "KEY","deleted_at"];
+    protected $fillable = ["REQUESTED", "REMOTEADDR", "PROD_NO", "INDEX", "KEY","deleted_at",
+                    "DATE",
+                    "ORDEREDBY",
+                    "ARTICLE",
+                    "TITLE",
+                    "AUTHOR",
+                    "LASTTOUCH",
+                    "SHIPPED",
+                    "LISTPRICE",
+                    "SALEPRICE",
+                    "DISC",
+                    "STATUS",
+                    "SUBTITLE",
+                    "PUBLISHER",
+                    "FORMAT",
+                    "SERIES",
+                    "SOPLAN",
+                    "CAT",
+                    "AUTHORKEY",
+                    "TITLEKEY",
+                    "COMPUTER",
+                    "TIMESTAMP",
+                    "DATESTAMP",
+                    "LASTTIME",
+                    "UNITCOST",
+                    "PAGES",
+                    "PUBDATE",
+                    "INVNATURE",
+                    "USERPASS",
+                    "LASTDATE",
+                    ];
 
     public $foreignKeys = [
         ["REMOTEADDR","REMOTEADDR","webheads"], //REMOTEADDR references REMOTEADDR on webheads
@@ -63,7 +93,7 @@ class Webdetails extends BaseModel implements ModelInterface {
 	  }
 
 	 public function user(){
-	    return $this->belongsTo('\App\Models\User','KEY','KEY');
+	    return $this->belongsTo('\App\Models\User','vendor_key','KEY');
 	  }
 
 
@@ -125,52 +155,6 @@ public function getRemoteAddr($user){
     public function book()
     {
         return $this->belongsTo(Inventories::class,'PROD_NO','ISBN');
-    }
-
-	protected static function boot()
-    {
-        parent::boot();
- 
-        static::creating(function ($model) {
-            //
-        });
-
-        static::saved(function ($model) {
-            if($model->INDEX === null){
-                $result = $model->dbf()->create($model->getAttributes());
-                $model->fill($result->getAttributes())->save();
-            }else{
-               $result = $model->dbf()->save();
-            }
-        });
-
-        static::updating(function ($model) {
-           //
-        });
-
-        static::deleted(function ($model) {
-            $dbf = $model->fromDbf();
-            if($dbf != null){
-               $dbf->delete();
-            }
-        });
-
-      static::restoring(function ($model) {
-            $dbf = $model->fromDbf();
-            if($dbf != null){
-               $dbf->restore();
-            }
-        });
-  
-
-        /*
-        creating and created: sent before and after records have been created.
-		updating and updated: sent before and after records are updated.
-		saving and saved: sent before and after records are saved (i.e created or updated).
-		deleting and deleted: sent before and after records are deleted or soft-deleted.
-		restoring and restored: sent before and after soft-deleted records are restored.
-		retrieved: sent after records have been retrieved.
-		*/
     }
 
 }

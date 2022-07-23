@@ -7,7 +7,7 @@ trait GetHeadersAttributeTrait {
         
         if(isset($headers["_config"])) unset($headers["_config"]); 
             
-            $cols = $this->dbf()->database()->getMeta();
+            $cols = $this->database()->getMeta();
            
             foreach($cols AS $col){
                 $con = $col->toArray();

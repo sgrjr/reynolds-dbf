@@ -38,7 +38,8 @@ class Model {
     public $builder = null;
     public $database;
     private $db;
-
+    private $fillable = [];
+    private $attributeTypes = [];
     /**
      * The table associated with the model.
      *
@@ -431,5 +432,17 @@ public static function loop($callback, $startIndex=-1, $limit=1){
     //close the file
     $db->close();
 }
+
+    public function getFillable(){
+        return $this->fillable;
+    }
+
+    public function getAttributeTypes(){
+        if(isset($this->attributeTypes)){
+            return $this->attributeTypes;  
+        }else{
+            return [];  
+        }
+    }
 
 }

@@ -85,4 +85,38 @@ Trait ModelTrait
         return static::orderBy('id','DESC')->first();
     }
 
+    public static function search($input){
+        $builder = new static;
+
+        if(isset($input->TRADE_TITLES) && isset($input->CENTERPOINT_TITLES) && $input->TRADE_TITLES === 'on' && $input->CENTERPOINT_TITLES === 'on'){
+            //do nothing if they are both set and both equal 'on'
+        }else{
+            if(isset($input->TRADE_TITLES) && $input->TRADE_TITLES === 'on') $builder = $builder->where('INVNATURE','TRADE');
+            if(isset($input->CENTERPOINT_TITLES) && $input->CENTERPOINT_TITLES === 'on') $builder = $builder->where('INVNATURE','CENTE');
+        }
+
+        if(isset($input->minimum_price) && $input->minimum_price != false && $input->minimum_price != null) $builder = $builder->where('LISTPRICE',">=", $input->minimum_price);
+        if(isset($input->maximum_price) && $input->maximum_price != false && $input->maximum_price != null) $builder = $builder->where('LISTPRICE',"<=", $input->maximum_price);
+
+        if(isset($input->TITLE) && $input->TITLE != false && $input->TITLE != null && $input->TITLE != '') $builder = $builder->where('TITLE',"LIKE", '%'.$input->TITLE.'%');
+        if(isset($input->AUTHORKEY) && $input->AUTHORKEY != false && $input->AUTHORKEY != null && $input->AUTHORKEY != '') $builder = $builder->where('AUTHORKEY','LIKE', '%'.$input->AUTHORKEY.'%');
+        if(isset($input->ISBN) && $input->ISBN != false && $input->ISBN != null && $input->ISBN != '') $builder = $builder->where('ISBN','LIKE', '%'.$input->ISBN.'%');
+        
+        $values = collect([]);
+
+        foreach($input->genres AS $genre){    
+            if(isset($genre->checked) && $genre->checked === 'on'){
+                $values->push($genre->SCAT);
+            }
+        }
+            if($values->count() > 0) $builder = $builder->whereIn('SCAT', $values);
+
+        if( str_contains(static::class, "Inventories") ){
+            $builder = $builder->orderBy('PUBDATE','DESC');
+        }
+        
+
+        return $builder;
+    }
+
 }

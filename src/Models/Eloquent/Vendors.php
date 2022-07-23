@@ -1,6 +1,6 @@
 <?php namespace Sreynoldsjr\ReynoldsDbf\Models\Eloquent;
 
-use Cache;
+use Cache, Carbon\Carbon, stdclass;
 use Sreynoldsjr\ReynoldsDbf\Models\Eloquent\Passfiles;
 use Sreynoldsjr\ReynoldsDbf\Models\Eloquent\Allheads;
 use Sreynoldsjr\ReynoldsDbf\Models\Eloquent\Ancientheads;
@@ -8,17 +8,43 @@ use Sreynoldsjr\ReynoldsDbf\Models\Eloquent\Backheads;
 use Sreynoldsjr\ReynoldsDbf\Models\Eloquent\Broheads;
 use Sreynoldsjr\ReynoldsDbf\Models\Eloquent\Webheads;
 use Sreynoldsjr\ReynoldsDbf\Models\Eloquent\Standing_orders;
+use Sreynoldsjr\ReynoldsDbf\Models\Eloquent\Passwords;
+use Symfony\Component\Console\Output\ConsoleOutput;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Sreynoldsjr\ReynoldsDbf\Models\Eloquent\Interfaces\ModelInterface;
 use Sreynoldsjr\ReynoldsDbf\Models\Traits\InitializeVendorsTrait;
+use Sreynoldsjr\ReynoldsDbf\Models\Eloquent\Traits\EloquentVendorsTrait;
+use Sreynoldsjr\ReynoldsDbf\Models\Eloquent\Traits\AddressesCacheTrait;
+use Sreynoldsjr\ReynoldsDbf\Models\Eloquent\Traits\CacheTrait;
+
+use Sreynoldsjr\ReynoldsDbf\Models\Vendors as DbfVendors;
+use Sreynoldsjr\ReynoldsDbf\Models\Brodetails as DbfBrodetails;
+use Sreynoldsjr\ReynoldsDbf\Models\Backdetails as DbfBackdetails;
+use Sreynoldsjr\ReynoldsDbf\Models\Alldetails as DbfAlldetails;
+use Sreynoldsjr\ReynoldsDbf\Models\Ancientdetails as DbfAncientdetails;
+use Sreynoldsjr\ReynoldsDbf\Models\Webdetails as DbfWebdetails;
+use Sreynoldsjr\ReynoldsDbf\Models\Broheads as DbfBroheads;
+use Sreynoldsjr\ReynoldsDbf\Models\Backheads as DbfBackheads;
+use Sreynoldsjr\ReynoldsDbf\Models\Allheads as DbfAllheads;
+use Sreynoldsjr\ReynoldsDbf\Models\Ancientheads as DbfAncientheads;
+use Sreynoldsjr\ReynoldsDbf\Models\Webheads as DbfWebheads;
+use Sreynoldsjr\ReynoldsDbf\Models\Standing_orders as DbfStanding_orders;
+use Sreynoldsjr\ReynoldsDbf\Models\Passwords as DbfPasswords;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Storage;
 
 class Vendors extends BaseModel implements ModelInterface {
 
-    use SoftDeletes, InitializeVendorsTrait;
+  use SoftDeletes;
+  use InitializeVendorsTrait;
+  use EloquentVendorsTrait;
+  use AddressesCacheTrait, CacheTrait;
 
     private $VENDOR_CACHE_MINUTES = 15;
     public $timestamps = false;
+    protected $connection = "mysql";
 	protected $table = "vendors";
     protected $indexes = ["KEY"];
     public $migration = "2022_00_00_02_vendors.php";
@@ -37,243 +63,300 @@ class Vendors extends BaseModel implements ModelInterface {
       protected $appends = ['summary','isbns'];
       public $fillable = ['ACCTNOTE', 'ACOLLNOTE', 'ARTICLE', 'BUDGET', 'CARTICLE', 'CITY', 'CITYKEY', 'COMMCODE', 'COMPUTER', 'COUNTRY', 'CUSTNOTE', 'DATESTAMP', 'deleted_at', 'EMAIL', 'EMCHANGE', 'ENOTE', 'ENTRYDATE', 'EXTENSION', 'FAXPHONE', 'FIRST', 'INDEX', 'KEY', 'LAST', 'LASTDATE', 'LASTTIME', 'LASTTOUCH', 'MIDNAME', 'NATURE', 'NEWCODE', 'NOEMAILS', 'OLDCODE', 'ORDATE', 'ORGNAME', 'ORGNAMEKEY', 'ORSTATUS', 'PROMOTIONS', 'RECALLD', 'REMDATE', 'REMOVED', 'SECONDARY', 'SEX', 'STATE', 'STREET', 'TIMESTAMP', 'TITLE', 'VOICEPHONE', 'WEBSERVER', 'WHAT', 'ZIP5'];
 
-    public function team()
-    {
-        return $this->belongsTo(\App\Models\Team::class, 'vendor_id','id');
-    }
+      public function getCacheIsbns(){
 
-	public function standingOrders()
-    {
-        return $this->hasMany(Standing_orders::class,'KEY','KEY');
-    }
-  public function activeStandingOrders()
-    {
-        return $this->hasMany(Standing_orders::class,'KEY','KEY')->active();
-    }
-  public function inactiveStandingOrders()
-    {
-        return $this->hasMany(Standing_orders::class,'KEY','KEY')->inactive();
-    }
-
-	public function broOrders()
-    {
-        return $this->hasMany(Broheads::class,'KEY','KEY');
-    }
-  public function brodetailsOrders()
-    {
-        return $this->hasMany(Brodetail::class,'KEY','KEY');
-    }
-
-      public function backOrders()
-    {
-        return $this->hasMany(Backheads::class,'KEY','KEY');
-    }
-
-      public function backdetailsOrders()
-    {
-        return $this->hasMany(Backdetails::class,'KEY','KEY');
-    }
-
-    public function ancientOrders()
-    {
-        return $this->hasMany(Ancientheads::class,'KEY','KEY');
-    }
-
-    public function ancientdetailsOrders()
-    {
-        return $this->hasMany(Ancientdetails::class,'KEY','KEY');
-    }
-
-
-    public function allOrders()
-    {
-        return $this->hasMany(Allheads::class,'KEY','KEY');
-    }
-
-    public function alldetailsOrders()
-    {
-        return $this->hasMany(Alldetails::class,'KEY','KEY');
-    }
-
-    public function webOrders()
-    {
-        return $this->hasMany(Allheads::class,'KEY','KEY');
-    }
-
-    public function webdetailsOrders()
-    {
-        return $this->hasMany(Webdetails::class,'KEY','KEY');
-    }
-
-    private function addUnique($parent_array, $array_to_add){
-
-        $new_items = [];
-        foreach($array_to_add AS $atd){
-
-            if(count($parent_array) < 1){
-                $new_items[] = $atd;
-                break;
-            }
-
-            foreach($parent_array AS $pa){
-                foreach($atd AS $key => $val){
-                    if($val !== $pa[$key]){
-                        $new_items[] = $atd;
-                        break 3;
-                    }
-                }
-
-            }
-        }
-
-        return array_merge($parent_array, $new_items);
-    }
-
-    public function getEveryAddress($count = 10){
-            
-            $addresses = [];
-            //webhead
-            $web = $this->webOrders()->select('BILL_1','BILL_2','BILL_3','BILL_4')->take($count)->get()->toArray();
-
-            $addresses = $this->addUnique($addresses, $web);
-
-            if(count($addresses) < $count){
-                $back = $this->backOrders()->select('BILL_1','BILL_2','BILL_3','BILL_4')->take($count-count($addresses))->get()->toArray();
-                 $addresses = $this->addUnique($addresses, $back);
-
-                if(count($addresses) < $count){
-                    $bro = $this->broOrders()->select('BILL_1','BILL_2','BILL_3','BILL_4')->take($count-count($addresses))->get()->toArray();
-                     $addresses = $this->addUnique($addresses, $bro);
-
-                    if(count($addresses) < $count){
-                        $all = $this->allOrders()->select('BILL_1','BILL_2','BILL_3','BILL_4')->take($count-count($addresses))->get()->toArray();
-                         $addresses = $this->addUnique($addresses, $all);
-
-                         if(count($addresses) < $count){
-                            $ancient = $this->ancientOrders()->select('BILL_1','BILL_2','BILL_3','BILL_4')->take($count-count($addresses))->get()->toArray();
-                             $addresses = $this->addUnique($addresses, $ancient);
-                         }
-                    }
-                }
-            }
-            
-            return $addresses;
-    }
-
-    public function getIsbnsAttribute()
-    {
-
-          $key = $this->KEY . "_isbns";
-          //Cache::forget($key);
-
-          return Cache::remember($key, 900, function () {
-
-            $all = $this->alldetailsOrders()->pluck('PROD_NO')->toArray();
-            $ancient = $this->ancientdetailsOrders()->pluck('PROD_NO')->toArray();
-            $back = $this->backdetailsOrders()->pluck('PROD_NO')->toArray();
-            $bro = $this->brodetailsOrders()->pluck('PROD_NO')->toArray();
-            $web = $this->webdetailsOrders()->pluck('PROD_NO')->toArray();
-            $list = collect(array_merge($all, $ancient,$back,$bro,$web));
-            $newList = [];
-
-            foreach($list AS $title){
-              $newList[$title] = $title;
-            }
-            return $newList;
-          });
-    }
-
-    public function calcWholeSaleDisount(){
-	  //wholesale discount
-
-	  $passfile = Passfiles::ask()->where('KEY',"===",$this->present()->KEY)->first();
-
-	  if($passfile !== null){
-	    return $passfile->discount;
-	  }else{
-	    return false;
-	  }
-
-	}
-
-	 public function users(){
-         return $this->hasMany(User::class,'KEY','KEY');
-    }
-
-    public function processing(){
-        return $this->hasMany(Webhead::class,'KEY','KEY')->iscomplete();
-    }
-
-    public function carts()
-    {
-        return $this->hasMany(Webhead::class, 'KEY','KEY')->notcomplete();
-    }
-
-    public function getCartsCountAttribute(){
-
-         return count($this->carts);
-      }
-
-      public function getProcessingCountAttribute(){
-
-         return count($this->processing);
-      }
-
-         public function getSummaryAttribute(){
-
-            return [
-                "carts_count" => $this->cartsCount,
-                "processing_count" => $this->processingCount 
-
-            ];
-
-          }
-
-
-    public function getInvoice($_, $args){
-
-        if(isset($args['TRANSNO'])){
-            $key = 'TRANSNO';
-        }else if(isset($args['REMOTEADDR'])){
-            $key = 'REMOTEADDR';
-        }else{
-            return null;
-        }
-
-        $user = request()->user();
-        $cart = Allheads::where($key, $args[$key])->where('KEY', $user->KEY)->first();
-
-        if($cart === null){
-          $cart = Ancientheads::where($key, $args[$key])->where('KEY', $user->KEY)->first();
-
-          if($cart === null){
-            $cart = Backheads::where($key, $args[$key])->where('KEY', $user->KEY)->first();
-
-            if($cart === null){
-              $cart = Broheads::where($key, $args[$key])->where('KEY', $user->KEY)->first();
-
-              if($cart === null){
-                $cart = Webheads::where($key, $args[$key])->where('KEY', $user->KEY)->first();
-                  if($cart === null){
-                    if($key === "TRANSNO"){
-                        $cart = Webheads::where('REMOTEADDR', $args[$key])->where('KEY', $user->KEY)->first();
-                    }else{
-                        $cart = Webheads::where('TRANSNO', $args[$key])->where('KEY', $user->KEY)->first();
-                    }
-                    
-                  }
-              }
-            }
-          }
-        }
-
-        return $cart;
-    }
-
-    public function getAddressesAttribute(){
-        return Cache::get($this->KEY.'_every_address', function () {
-            return $this->getEveryAddress(6);
+        $cache_key = $this->KEY . "_isbns";
+        Cache::forget($cache_key);
+        $key = $this->KEY;
+        return Cache::rememberForever($cache_key, function() use ($key) {
+          return $this->getCacheHistory($key);
         });
-    }
+      }
 
+      public function getCacheHistory(String $key = null){
+        if(!$key) $key = $this->KEY;
+        if(!$key) return static::emptyHistory();
+
+          $dir = storage_path('/app/vendors');
+
+          if(!is_dir($dir)) static::cacheEverything();
+
+          $file_name = $dir . '/'.$key.'_vendor.cache';
+
+          if(file_exists($file_name)){
+            return json_decode(file_get_contents($file_name));
+          }else{
+            return static::emptyHistory($key);
+          }
+            
+      }
+      public static function emptyHistory(String $key = null){
+            $empty = new stdclass;
+            $empty->updated_at = '';
+            $empty->KEY = $key;
+            $empty->purchased = collect([]);
+            $empty->standing_orders = collect([]);
+            $empty->addresses = collect([]);
+            
+            return $empty;
+      }
+
+     public static function cachePurchased($class, Collection $keys = null){
+
+          if(!$keys) $keys = static::startCacheKeys();
+
+          $output = new ConsoleOutput;
+          $steps = (new $class)->count();
+          $message = 'Purchased Books being cached from: ' . $class;
+          $progressBar = static::progressBar($output, $steps, $message);
+
+          $replace = false;
+          $result = $class::loop(function($record)use($keys, $replace, $progressBar){
+               if($record->KEY != "" && $keys->get($record->KEY) != null){
+                    $keys[$record->KEY]->purchased->push($record->PROD_NO);
+                    static::storeVendor($keys[$record->KEY], 'purchased', $replace);
+               }
+
+               $progressBar->advance();
+          }, -1, 999999);
+
+          $progressBar->finish();
+
+          return $result;
+     }
+
+     public static function cacheWebdetails(Collection $keys = null){
+          static::cachePurchased(DbfWebdetails::class, $keys);
+     }
+
+     public static function cacheBrodetails(Collection $keys = null){
+           static::cachePurchased(DbfBrodetails::class, $keys);
+     }
+
+     public static function cacheBackdetails(Collection $keys = null){
+          static::cachePurchased(DbfBackdetails::class, $keys);
+     }
+
+     public static function cacheAlldetails(Collection $keys = null){
+           static::cachePurchased(DbfAlldetails::class, $keys);
+     }
+
+     public static function cacheAncientdetails(Collection $keys = null){
+          static::cachePurchased(DbfAncientdetails::class, $keys);
+     }
+
+     private static function cachePlans(Collection $keys = null){
+          if(!$keys) $keys = static::startCacheKeys();
+          $m = new static;
+          $m->w('Starting to cache standing orders ...');
+
+           /* GET STANDING ORDERS */
+          foreach(DbfStanding_orders::all(['INDEX','KEY','QUANTITY','SOSERIES']) AS $record){
+               static::addIf($keys, $record, 'standing_orders');
+          }
+
+          $filtered = $keys->filter(function ($value, $key) {
+               return $value->standing_orders->count() > 0;
+          });
+
+          static::storeCache($filtered, 'standing_orders', true);
+
+          $m->w('Standing orders cached.');
+     }
+
+     private static function getBillingFields(){
+          return [
+               'KEY','BILL_1','BILL_2','BILL_3','BILL_4','BILL_5',
+               'COMPANY','ATTENTION','STREET','ROOM','DEPT','CITY','STATE','POSTCODE','COUNTRY','VOICEPHONE','FAXPHONE'
+          ];
+     }
+
+     private static function cacheAddressesVendors(Collection $keys = null){
+          if(!$keys) $keys = static::startCacheKeys();
+          static::addressesFromVendorFile($keys);          
+     }
+
+     private static function cacheAddressesWebheads(Collection $keys = null){
+          if(!$keys) $keys = static::startCacheKeys();
+          static::addressesFromHeadsFile($keys, DbfWebheads::class);  
+
+          $filtered = $keys->filter(function ($value, $key) {
+               return $value->addresses->count() > 0;
+          });
+
+          static::storeCache($filtered, 'addresses', true);        
+     }
+
+      private static function cacheAddressesAllheads(Collection $keys = null){
+          if(!$keys) $keys = static::startCacheKeys();
+          static::addressesFromHeadsFile($keys, DbfAllheads::class);  
+
+          $filtered = $keys->filter(function ($value, $key) {
+               return $value->addresses->count() > 0;
+          });
+
+          static::storeCache($filtered, 'addresses', true);        
+     }
+
+     private static function cacheAddresses(Collection $keys = null){
+
+          if(!$keys) $keys = static::startCacheKeys();
+
+          // These Return $keys
+          static::addressesFromHeadsFile($keys, DbfWebheads::class);
+          static::addressesFromHeadsFile($keys, DbfBroheads::class);
+          static::addressesFromHeadsFile($keys, DbfBackheads::class);
+          static::addressesFromHeadsFile($keys, DbfAllheads::class);
+          static::addressesFromHeadsFile($keys, DbfAncientheads::class);
+
+          $filtered = $keys->filter(function ($value, $key) {
+               return $value->addresses->count() > 0;
+          });
+
+          static::storeCache($filtered, 'addresses', true);
+          
+     }
+
+     public static function cacheOrders(){
+        ini_set('memory_limit','512M');
+          $keys = static::startCacheKeys();
+
+          /* GET ISBNS PURCHASED */
+         static::cacheWebdetails($keys);
+         static::cacheBrodetails($keys);
+         static::cacheBackdetails($keys);
+         static::cacheAlldetails($keys);
+         static::cacheAncientdetails($keys);
+     }
+
+     public static function cacheEverything(){
+          
+          $m = new static;
+          $m->w('Started at: ' . now()->toDateTimeString());
+
+          $keys = static::startCacheKeys();
+          
+          $output = new ConsoleOutput;
+          $steps = 9;
+          $message = 'Everything is being cached.';
+          $progressBar = static::progressBar($output, $steps, $message);
+
+          static::cacheClear();
+          $progressBar->advance();
+
+          static::cachePlans($keys);
+          $progressBar->advance();
+
+          static::addressesFromVendorFile($keys);
+          $progressBar->advance();
+
+          /* GET ISBNS PURCHASED */
+          static::cacheWebdetails($keys);
+          $progressBar->advance();
+
+          static::cacheBrodetails($keys);
+          $progressBar->advance();
+
+          static::cacheBackdetails($keys);
+          $progressBar->advance();
+
+          static::cacheAlldetails($keys);
+          $progressBar->advance();
+
+          static::cacheAncientdetails($keys);
+          $progressBar->advance();
+
+          static::cacheAddresses();
+          
+          $progressBar->finish();
+
+          $m->w('Finished at: ' . now()->toDateTimeString());
+     }
+
+     private static function addIf($keys, $record, $prop_name){
+          if(
+               $record['KEY'] != "" && 
+               $record['KEY'] !== null && 
+               isset($record['KEY']) && 
+               $keys->get($record['KEY'])
+          ) {
+               //if(is_array($keys[$record['KEY']]->$prop_name)) $keys[$record['KEY']]->$prop_name = collect($keys[$record['KEY']]->$prop_name);
+               $keys[$record['KEY']]->$prop_name->push($record);
+          }
+          return $keys;
+     }
+
+     private static function startCacheKeys(Array $k = []){
+
+          if(empty($k)) $k = DbfVendors::unique('KEY');
+          $keys = collect([]);
+          $now = Carbon::now()->toDateTimeString();
+
+          foreach($k AS $i=>$ke){
+               $keys->put($ke , (Object) [
+                    'created_at' => $now, // maybe it makes sense here, I'm not sure
+                    'updated_at'=> $now,
+                    'KEY'=> $ke, 
+                    "purchased" => collect([]), 
+                    "standing_orders" => collect([]), 
+                    "addresses" => collect([])
+               ]);
+          }
+
+          return $keys;
+     }
+
+     private static function storeCache($vendors, $prop, $replace = true){
+          foreach($vendors AS $key=>$vendor){
+              static::storeVendor($vendor, $prop, $replace);
+          }
+     }
+
+     private static function file_name($key){
+          return $file_name = "/vendors/" . $key . "_vendor.cache";
+     }
+     private static function storeVendor($vendor, $prop, $replace){
+          $file_name = static::file_name($vendor->KEY );
+
+          if(Storage::has($file_name)){
+               $f = json_decode(Storage::get($file_name));
+               if($replace){
+                    $f->$prop = $vendor->$prop;
+               }else{
+                    $f->$prop = $vendor->$prop->merge($f->$prop);
+               }
+
+               $f->updated_at = $vendor->updated_at;
+               $vendor = $f;
+          }
+          Storage::put($file_name, json_encode($vendor));
+     }
+
+     public static function cacheClear(){
+          (new static)->w('Clearing cache...');
+          Storage::deleteDirectory('vendors');
+     }
+
+     public static function cacheClearPurchased(){
+          static::clearAProperty(['purchased', collect([])]);
+     }
+
+     public static function clearAProperty($props){
+          ini_set('memory_limit','512M');
+          $keys = static::startCacheKeys();
+
+          foreach($keys AS $key){
+               $file_name = static::file_name($key->KEY );
+               
+               if(Storage::has($file_name)){
+                    $data = json_decode(Storage::get($file_name));
+                    foreach($props AS $p){
+                         $name = $p['name'];
+                         $data->$name = $p['value'];
+                    }
+                    Storage::put($file_name, json_encode($data));
+               }
+          }
+
+     }
 }

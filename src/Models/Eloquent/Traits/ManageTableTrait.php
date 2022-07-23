@@ -19,6 +19,7 @@ Trait ManageTableTrait
 	    }else{
 	    	$this->w("<fg=red>[".$this->getTable()."] Table not dropped.");
 	    }
+
 		\DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 		$this->migrationDelete();
 		return $this;
@@ -28,6 +29,21 @@ Trait ManageTableTrait
 		$output = new ConsoleOutput();
 		$line? $output->writeln($message):$output->write($message);
 	}
+
+     public static function progressBar($output, $steps = 1, $message = 'starting'){       
+          $progressBar = new ProgressBar($output, $steps);
+          $progressBar->setBarCharacter('<fg=green>⚬</>');
+          $progressBar->setEmptyBarCharacter("<fg=red>⚬</>");
+          $progressBar->setProgressCharacter("<fg=green>➤</>");
+          $progressBar->setFormat("<fg=white;bg=cyan> %status:-45s%</>\n%current%/%max% [%bar%] %percent:3s%% %estimated:-20s% %memory:20s%", $progressBar->getFormatDefinition('debug')); // the new format
+          $progressBar->setMessage($message, 'status');
+          $progressBar->start();
+
+          return $progressBar;
+
+          //$progressBar->advance();
+          //$progressBar->finish();
+     }
 
 	public function migrationDelete(){
 		$migration_name = str_replace(".php",'', $this->migration);
@@ -42,6 +58,16 @@ Trait ManageTableTrait
 		}
 
 		
+		return $this;
+	}
+
+	public function rebuildTable(){
+		$output = new ConsoleOutput();
+		$this->w("<fg=green>Rebuilding table [".$this->getTable()."] beginning.");
+		$this->dropTable();
+		$this->migrate();
+		$this->seedTable();
+		$this->w("<fg=green>Rebuilding table [".$this->getTable()."] completed.");
 		return $this;
 	}
 
@@ -60,12 +86,6 @@ Trait ManageTableTrait
 
     public function migrate(){
     	$result = \Artisan::call('migrate --path=/vendor/sreynoldsjr/reynolds-dbf/database/migrations/' . $this->migration);
-
-    	if(Schema::hasTable($this->getTable())){
-    		$this->w("<fg=green>[".$this->getTable()."] Migration ran successful.");
-    	}else{
-    		$this->w("<fg=red>[".$this->getTable()."] Migration not run.");
-    	}
     	////php artisan migrate --path=/database/migrations/full_migration_file_name_migration.php
     	return $this;
     }
@@ -189,12 +209,14 @@ Trait ManageTableTrait
 
 	public function seedFromDBF(){
             ini_set('memory_limit','512M');
-            \DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+            DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+            DB::connection()->unsetEventDispatcher();
 
             $output = new ConsoleOutput();
-            $iteration_limit = 400;
+            $iteration_limit = 500;
             $file = $this->dbf()->database();
             $file->open();
+            //$file->moveTo(849221);
             
             	$bag = [];
             	$count = $file->count();
@@ -209,13 +231,13 @@ Trait ManageTableTrait
             	$progressBar->start();
 
 	            while ($record=$file->nextRecord() ) {
-	                $rd = $record->getData();
-	                $bag[] = $rd;
-	                $progressBar->setMessage($this->getTable() . " [" . $rd["INDEX"] ."]", 'status'); // set the `status` value
+	                $bag[] = $record->getData();
+	                $progressBar->setMessage($this->getTable() . " [" . $record->INDEX ."]", 'status'); // set the `status` value
 	                $progressBar->advance();
 
 	                if(count($bag) === $iteration_limit){
 	                    $this->insert($bag);
+	                    unset($bag);
 	                    $bag = [];
 	                }
 	            }
@@ -224,7 +246,7 @@ Trait ManageTableTrait
 	            $bag = [];
 	            $progressBar->finish();
 
-            \DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+            DB::statement('SET FOREIGN_KEY_CHECKS=1;');
             $file->close();
 
             unset($dbf);

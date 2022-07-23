@@ -1,7 +1,7 @@
 <?php namespace Sreynoldsjr\ReynoldsDbf\Models;
 
 use Sreynoldsjr\ReynoldsDbf\Helpers\DataEntry;
-use Hash;
+use Hash, stdclass;
 /**
 *
 * This class defines the data access functions to a DBF record
@@ -20,7 +20,14 @@ class Record {
     
  public function __construct($table, $recordIndex, $rawData, $deleted_at=null, $inserted = false) {
 
-        $this->table =& $table;        
+        //$this->table =& $table;
+        $this->table = new stdclass;
+        $this->table->getRaw = $table->getRaw(); 
+        $this->table->types = $table->types;
+        $this->memo = $table->memo;
+        $this->columns = $table->getColumns();
+        $this->columnNames = $table->getColumnNames();
+
         $this->rawData = $rawData;
         $this->data = [];
         $this->inserted = $inserted;
@@ -32,14 +39,14 @@ class Record {
 
              $this->deleted_at = !isset($rawData["deleted_at"]) || $rawData["deleted_at"] == "0"? null:$rawData["deleted_at"];
 
-             foreach ($this->table->getColumns() as $column) {
-                if(isset($rawData[$column->getName()])){
-                    $value = $rawData[$column->getName()]; //str_pad($rawData[$column->getName()],$column->getDataLength(),$filler, STR_PAD_LEFT);                
+             foreach ($this->getColumns() as $column) {
+                if(isset($rawData[$column->name])){
+                    $value = $rawData[$column->name]; //str_pad($rawData[$column->name],$column->getDataLength(),$filler, STR_PAD_LEFT);                
                 }else{
                     $value = "";// str_pad("", $column->getDataLength(),$filler,STR_PAD_LEFT);
                 }
 
-                $this->data[$column->getName()] = DataEntry::make($value, $column);
+                $this->data[$column->name] = DataEntry::make($value, $column);
             }
         }else if ($rawData && strlen($rawData)>0) {
             //if(str_contains( $rawData, '\86')) dd($rawData);
@@ -50,7 +57,7 @@ class Record {
                 if($column->original){
                     $value = substr($rawData,$column->getBytePos(),$column->getDataLength());
                 }else{
-                    $value = $this->getCustomField($column->getName());
+                    $value = $this->getCustomField($column->name);
                 }
                 $this->transform($column, $value);
             }
@@ -58,12 +65,19 @@ class Record {
             $this->deleted_at = false;
             foreach ($table->getColumns() as $column) {
                 $val= ""; //str_pad("", $column->getDataLength(),$filler, STR_PAD_LEFT);
-
-                $this->data[$column->getName()] = DataEntry::make($val, $column);
+                $this->data[$column->name] = DataEntry::make($val, $column);
             }
         }
         
         $this->initData();
+        unset($val);
+        unset($value);
+        unset($filler);
+        unset($inerted);
+        unset($table);
+        unset($recordIndex);
+        unset($rawData);
+        unset($deleted_at);
 
     }
 
@@ -78,6 +92,8 @@ class Record {
             case 'created_at':
             case 'updated_at':
                 return null;
+            case 'SYNOPSIS_MEMO':
+                return $this->data['SYNOPSIS_MEMO']->value;
             default:
                 if(str_contains($field, "_MEMO")){
                     $this->getMemoValue(str_replace("_MEMO","",$field));
@@ -89,10 +105,14 @@ class Record {
 
     function initData(){
         if(!isset($this->data["INDEX"])){
-            $this->data["INDEX"] = DataEntry::make($this->getRecordIndex(), $this->table->getColumnByName("INDEX"));
+            $this->data["INDEX"] = DataEntry::make($this->getRecordIndex(), $this->getColumnByName("INDEX"));
         }
         if(!isset($this->data["deleted_at"])){
-            $this->data["deleted_at"] = DataEntry::make($this->deleted_at, $this->table->getColumnByName("deleted_at"));
+            $this->data["deleted_at"] = DataEntry::make($this->deleted_at, $this->getColumnByName("deleted_at"));
+        }
+
+        if(trim($this->data['INDEX']->value) === ""){
+            $this->data['INDEX']->value = $this->getRecordIndex();
         }
     }
 
@@ -100,48 +120,55 @@ class Record {
         if($column->getType() === "M"){
             $this->transformMemo($column,$value);
         }else{
-            $this->table->getRaw()? 
-                $this->data[$column->getName()] = trim($value ?? '') :
-                $this->data[$column->getName()] = DataEntry::make(trim($value ?? ''), $column);
+            $this->table->getRaw? 
+                $this->data[$column->name] = trim($value ?? '') :
+                $this->data[$column->name] = DataEntry::make(trim($value ?? ''), $column);
         }
 
     }
 
     function transformMemo($column, $value){
         $val = unpack("L", $value)[1];
-        $val = $this->table->memo->getMemo($val)["text"];
-                       
-        $this->data[$column->getName()] = DataEntry::make($value, $column);
-        $this->data[$column->getName() . '_MEMO'] = DataEntry::make($val, $this->table->getColumnByName($column->getName().'_MEMO'));
+        $val = $this->memo->getMemo($val)["text"];
+        $this->data[$column->name] = DataEntry::make($value, $column);
+        $this->data[$column->name . '_MEMO'] = DataEntry::make($val, $this->getColumnByName($column->name.'_MEMO'));
+        return $this;
     }
 
     function _transformPassword($column, $value){
-       $this->data[$column->getName()] = DataEntry::make($value, $column);
-       $this->data["password"] = DataEntry::make(\Hash::make($value), $this->table->getColumnByName('password'));           
+       $this->data[$column->name] = DataEntry::make($value, $column);
+       $this->data["password"] = DataEntry::make(\Hash::make($value), $this->getColumnByName('password'));           
     }
 
     function isDeleted() {
-        if(is_string($this->rawData)){
-            return ord($this->rawData)!="32";
-        }else{
             if(isset(
-                $this->rawData["deleted_at"]) && 
-                $this->rawData["deleted_at"] != null && 
-                $this->rawData["deleted_at"]!= 0 && 
-                $this->rawData["deleted_at"] != "0"
+                $this->deleted_at) && 
+                $this->deleted_at != null && 
+                $this->deleted_at!= 0 && 
+                $this->deleted_at != "0"
             ){
                 return true;
-            }else{
+            }else if(isset($this->deleted_at)){
                 return false;
+            }else if(is_string($this->rawData)){
+                return ord($this->rawData)!="32";
             }
-        }
+
+            return false;
     }
 
-    function getColumns() {
-        return $this->table->getColumns();
+    function getColumns($onlyOriginal = false) {
+         if($onlyOriginal){
+            return array_filter($this->columns, function($v){
+                return $v->original;
+            });
+        } 
+        return $this->columns;
     }
+    
     function getColumnByName($name) {
-        return $this->table->getColumnByName($name);
+        foreach ($this->columns as $i=>$n) if (strtoupper($n->name) == strtoupper($name)) return $n;
+        return false;
     }
     function getColumn($index) {
         return $this->table->getColumn($index);
@@ -159,7 +186,7 @@ class Record {
      * -------------------------------------------------------------------------
      */
     function getStringByName($columnName) {
-        return $this->getString($this->table->getColumnByName($columnName));
+        return $this->getString($this->getColumnByName($columnName));
     }
     function getStringByIndex($columnIndex) {
         return $this->getString($this->table->getColumn($columnIndex));
@@ -175,15 +202,16 @@ class Record {
         }
     }
     function forceGetString($columnObj) {
-        $index = $columnObj->getName();
+        $index = $columnObj->name;
         if (ord($this->data[$index]->value)=="0") return false;
         return trim($this->data[$index]->value ?? '');
     }
+
     function getObjectByName($columnName) {
-        return $this->getObject($this->table->getColumnByName($columnName));
+        return $this->getObject($this->getColumnByName($columnName));
     }
     function getObjectByIndex($columnIndex) {
-        return $this->getObject($this->table->getColumn($columnIndex));
+        return $this->getObject($this->getColumn($columnIndex));
     }
     function getObject($columnObj) {
 
@@ -208,13 +236,13 @@ class Record {
         trigger_error ("cannot handle datatype".$columnObj->getType(), E_USER_ERROR);
     }
     function getDate($columnObj) {
-	    if ($columnObj->getType()!=$this->table->types->DBFFIELD_TYPE_DATE) trigger_error ($columnObj->getName()." is not a Date column", E_USER_ERROR);
+	    if ($columnObj->getType()!=$this->table->types->DBFFIELD_TYPE_DATE) trigger_error ($columnObj->name." is not a Date column", E_USER_ERROR);
         $s = $this->forceGetString($columnObj);
         if (!$s) return false;
         return strtotime($s);
     }
     function getDateTime($columnObj) {
-        if ($columnObj->getType()!=$this->table->types->DBFFIELD_TYPE_DATETIME) trigger_error ($columnObj->getName()." is not a DateTime column", E_USER_ERROR);
+        if ($columnObj->getType()!=$this->table->types->DBFFIELD_TYPE_DATETIME) trigger_error ($columnObj->name." is not a DateTime column", E_USER_ERROR);
         $raw =  $this->data[$columnObj->getColIndex()];
         $buf = unpack("i",substr($raw,0,4));
         $intdate = $buf[1];
@@ -227,7 +255,7 @@ class Record {
         return $longdate+$inttime;
     }
     function getBoolean($columnObj) {
-        if ($columnObj->getType()!=$this->table->types->DBFFIELD_TYPE_LOGICAL) trigger_error ($columnObj->getName()." is not a DateTime column", E_USER_ERROR);
+        if ($columnObj->getType()!=$this->table->types->DBFFIELD_TYPE_LOGICAL) trigger_error ($columnObj->name." is not a DateTime column", E_USER_ERROR);
         $s = $this->forceGetString($columnObj);
         if (!$s) return false;
         switch (strtoupper($s[0])) {
@@ -241,16 +269,16 @@ class Record {
         }
     }
     function getMemo($columnObj) {
-	    if ($columnObj->getType()!=$this->table->types->DBFFIELD_TYPE_MEMO) trigger_error ($columnObj->getName()." is not a Memo column", E_USER_ERROR);
+	    if ($columnObj->getType()!=$this->table->types->DBFFIELD_TYPE_MEMO) trigger_error ($columnObj->name." is not a Memo column", E_USER_ERROR);
         return $this->forceGetString($columnObj);
     }
     function getMemoValue($name){
-        $obj = $this->table->getColumnByName($name);
+        $obj = $this->getColumnByName($name);
         return $this->getMemo($obj);
     }
 
     function getFloat($columnObj) {
-	    if ($columnObj->getType()!=$this->table->types->DBFFIELD_TYPE_FLOATING) trigger_error ($columnObj->getName()." is not a Float column", E_USER_ERROR);
+	    if ($columnObj->getType()!=$this->table->types->DBFFIELD_TYPE_FLOATING) trigger_error ($columnObj->name." is not a Float column", E_USER_ERROR);
         $s = $this->forceGetString($columnObj);
         if (!$s) return false;
         $s = str_replace(",",".",$s);
@@ -258,14 +286,14 @@ class Record {
     }
     function getInt($columnObj) {
 
-	    if ($columnObj->getType()!=$this->table->types->DBFFIELD_TYPE_NUMERIC) trigger_error ($columnObj->getName()." is not a Number column", E_USER_ERROR);
+	    if ($columnObj->getType()!=$this->table->types->DBFFIELD_TYPE_NUMERIC) trigger_error ($columnObj->name." is not a Number column", E_USER_ERROR);
         $s = $this->forceGetString($columnObj);
         if (!$s) return false;
         $s = str_replace(",",".",$s);
         return intval($s);
     }
 	function getIndex($columnObj) {
-		if ($columnObj->getType()!=$this->table->types->DBFFIELD_TYPE_INDEX) trigger_error ($columnObj->getName()." is not an Index column", E_USER_ERROR);
+		if ($columnObj->name!=$this->table->types->DBFFIELD_TYPE_INDEX) trigger_error ($columnObj->name." is not an Index column", E_USER_ERROR);
 		$s = $this->data[$columnObj->getColIndex()];
 		if (!$s) return false;
 		
@@ -282,15 +310,15 @@ class Record {
      * -------------------------------------------------------------------------
      **/
 	function copyFrom($record) {
-        $ignore_columns = ["index","INDEX","deleted_at"];
+        $ignore_columns = ["index","INDEX"];
 
         foreach ($record as $i=>$v) {
 
             /*if(isset($this->data[$i])){
                 $this->data[$i]->value = $v->value;
             }*/
-            
-           if(in_array($i, $this->table->getColumnNames())){
+
+           if(in_array($i, $this->columnNames) && !in_array($i,$ignore_columns)){
                 if (is_object($i))
                     $this->setString($i,$v);
                 else if (is_numeric($i)) 
@@ -313,10 +341,10 @@ class Record {
 
     function setDeleted($b) {
        	$this->deleted_at=$b;
-        $this->transform($this->table->getColumnByName('deleted_at'), $b);
+        $this->transform($this->getColumnByName('deleted_at'), $b);
     }
     function setStringByName($columnName,$value) {
-        $this->setString($this->table->getColumnByName($columnName),$value);
+        $this->setString($this->getColumnByName($columnName),$value);
     }
     function setStringByIndex($columnIndex,$value) {
         $this->setString($this->table->getColumn($columnIndex),$value);
@@ -333,11 +361,11 @@ class Record {
     function forceSetString($columnObj,$value) {
         if(is_object($value)) {$value = $value->value;}
         $newValue = str_pad(substr($value,0,$columnObj->getDataLength()),$columnObj->getDataLength()," ");
-        $this->data[$columnObj->getName()] = $newValue;
+        $this->data[$columnObj->name] = $newValue;
     }
 
     function setObjectByName($columnName,$value) {
-        return $this->setObject($this->table->getColumnByName($columnName),$value);
+        return $this->setObject($this->getColumnByName($columnName),$value);
     }
     function setObjectByIndex($columnIndex,$value) {
         return $this->setObject($this->table->getColumn($columnIndex),$value);
@@ -356,7 +384,7 @@ class Record {
         trigger_error ("cannot handle datatype".$columnObj->getType(), E_USER_ERROR);
     }
     function setDate($columnObj,$value) {
-	    if ($columnObj->getType()!=$this->table->types->DBFFIELD_TYPE_DATE) trigger_error ($columnObj->getName()." is not a Date column", E_USER_ERROR);
+	    if ($columnObj->name!=$this->table->types->DBFFIELD_TYPE_DATE) trigger_error ($columnObj->name." is not a Date column", E_USER_ERROR);
         if (strlen($value)==0) {
 	        $this->forceSetString($columnObj,"");
 	        return;
@@ -364,7 +392,7 @@ class Record {
        	$this->forceSetString($columnObj,date("Ymd",$value));
     }
     function setDateTime($columnObj,$value) {
-        if ($columnObj->getType()!=$this->table->types->DBFFIELD_TYPE_DATETIME) trigger_error ($columnObj->getName()." is not a DateTime column", E_USER_ERROR);
+        if ($columnObj->getType()!=$this->table->types->DBFFIELD_TYPE_DATETIME) trigger_error ($columnObj->name." is not a DateTime column", E_USER_ERROR);
         if (strlen($value)==0) {
 	        $this->forceSetString($columnObj,"");
 	        return;
@@ -376,7 +404,7 @@ class Record {
         $this->data[$columnObj->getColIndex()] = $d.$t;
     }
     function setBoolean($columnObj,$value) {
-        if ($columnObj->getType()!=$this->table->types->DBFFIELD_TYPE_LOGICAL) trigger_error ($columnObj->getName()." is not a DateTime column", E_USER_ERROR);
+        if ($columnObj->getType()!=$this->table->types->DBFFIELD_TYPE_LOGICAL) trigger_error ($columnObj->name." is not a DateTime column", E_USER_ERROR);
 
         if(is_object($value)) $value = $value->value;
 
@@ -399,11 +427,11 @@ class Record {
         }
     }
     function setMemo($columnObj,$value) {
-	    if ($columnObj->getType()!=$this->table->types->DBFFIELD_TYPE_MEMO) trigger_error ($columnObj->getName()." is not a Memo column", E_USER_ERROR);
+	    if ($columnObj->getType()!=$this->table->types->DBFFIELD_TYPE_MEMO) trigger_error ($columnObj->name." is not a Memo column", E_USER_ERROR);
         return $this->forceSetString($columnObj,$value);
     }
     function setFloat($columnObj,$value) {
-	    if ($columnObj->getType()!=$this->table->types->DBFFIELD_TYPE_FLOATING) trigger_error ($columnObj->getName()." is not a Float column", E_USER_ERROR);
+	    if ($columnObj->getType()!=$this->table->types->DBFFIELD_TYPE_FLOATING) trigger_error ($columnObj->name." is not a Float column", E_USER_ERROR);
         if (strlen($value)==0) {
 	        $this->forceSetString($columnObj,"");
 	        return;
@@ -413,7 +441,7 @@ class Record {
     }
     function setInt($columnObj,$value) {
 
-	    if ($columnObj->getType()!=$this->table->types->DBFFIELD_TYPE_NUMERIC) trigger_error ($columnObj->getName()." is not a Number column", E_USER_ERROR);
+	    if ($columnObj->getType()!=$this->table->types->DBFFIELD_TYPE_NUMERIC) trigger_error ($columnObj->name." is not a Number column", E_USER_ERROR);
 
         if(is_object($value)) $value = $value->value;
 
@@ -425,9 +453,9 @@ class Record {
         //$this->forceSetString($columnObj,intval($value));
         
         /**
-        * suggestion from Sergiu Neamt: treat number values as decimals
+        * treat number values as decimals
         **/
-        $this->forceSetString($columnObj,number_format($value, $columnObj->decimalCount,'.',''));
+        $this->forceSetString($columnObj,number_format((Int) $value, $columnObj->decimalCount,'.',''));
     }
     /**
      * -------------------------------------------------------------------------
@@ -443,8 +471,8 @@ class Record {
 
         if($delimit) $dataString .= "'";
 
-        foreach($this->table->getColumns(true) AS $column){
-            $columnName = $column->getName();
+        foreach($this->getColumns(true) AS $column){
+            $columnName = $column->name;
             $columns[] = $columnName;
                 if($delimit) $dataString .= ",'";
                 $val = $this->data[$columnName];
@@ -462,7 +490,7 @@ class Record {
 
         }
         //dd(new static($this->table, $this->recordIndex, $dataString));
-        //var_dump(count($this->table->getColumns(true)));
+        //var_dump(count($this->getColumns(true)));
         //dd($dataString);
         //var_dump($this->table->recordByteLength);
         //dd($columns);
@@ -505,9 +533,9 @@ class Record {
 
         foreach($this->data AS $k=>$d){
             if(is_object($d)){
-                $data[$k] = $d->value;
+                $data[$k] = $d->value === ''? null:$d->value;
             }else{
-                $data[$k] = $d;
+                $data[$k] = $d === ''? null:$d;
             }
             
         }

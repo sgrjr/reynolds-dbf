@@ -313,6 +313,7 @@ public static function gauranteedBooksCount($count, $dates, $nature = "CENTE"){
                             break;
 
                         case "Text": //M	-	-	Memo
+                        case "TEXT": //M    -   -   Memo
                             return ['text',[]];
                             //$table->text($n);//	TEXT equivalent to the table
                             break;
@@ -371,9 +372,13 @@ public static function gauranteedBooksCount($count, $dates, $nature = "CENTE"){
     public static function setUpTableFromHeaders($table, $headers, $model){
 
         // overriding to compensate for encoding errors on input
+        // maybe someday figure a clean way to do this
         $binary = [
             "inventories" => ["SUBTITLE"],
-            "backdetails" => ["TITLE"]
+            "backdetails" => ["TITLE"],
+            'alldetails' => ['SUBTITLE'],
+            'allheads' => ['CINOTE'],
+            'ancientdetails'=>['TITLE','SUBTITLE','AUTHOR']
         ];
 
         foreach($headers AS $h){

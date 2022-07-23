@@ -20,7 +20,7 @@ class DataEntry{
     }
 
     public static function make($value, Object $col){
-        return static::makeIt($col->getName(), $value, $col->getType(), $col->getDataLength(), $col->getDecimalCount(), $col->getMySQLType(), $col->original);
+        return static::makeIt($col->name, $value, $col->type, $col->getDataLength(), $col->getDecimalCount(), $col->getMySQLType(), $col->original);
     }
 
     public function toArray(){

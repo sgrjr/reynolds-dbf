@@ -24,8 +24,7 @@ class Column extends \ArrayObject {
     var $types;
     var $original;
     var $table_name;
-
-    private $container = array();
+    //var $container = array();
 
     public function __construct(
         $name,
@@ -58,16 +57,6 @@ class Column extends \ArrayObject {
         $this->colIndex=$colIndex;
         $this->original = $original;
         $this->nullable = $nullable;
-
-        $this->container = [
-            "name"=>$this->getName(),
-            "length"=>$this->getDataLength(),
-            "type"=>$this->getType(),
-            "decimal_count" => $this->getDecimalCount(),
-            "mysql_type"=>$this->getMySQLType(),
-            "nullable" => $nullable
-        ];
-
         $this->table_name = $table_name;
     }
 
@@ -113,9 +102,6 @@ class Column extends \ArrayObject {
     function getMemAddress() {
         return $this->memAddress;
     }
-    function getName() {
-        return $this->name;
-    }
     function isSetFields() {
         return $this->setFields;
     }
@@ -137,9 +123,18 @@ class Column extends \ArrayObject {
     function getColIndex() {
         return $this->colIndex;
     }
-    function getContainer(){
+    function getContainerAttribute(){
       
-      return $this->container;
+        return [
+            "name"=>$this->name,
+            "length"=>$this->getDataLength(),
+            "type"=>$this->getType(),
+            "decimal_count" => $this->getDecimalCount(),
+            "mysql_type"=>$this->getMySQLType(),
+            "nullable" => $this->nullable,
+            "original" => $this->original
+        ];
+
 
         $exactLengths = [
             //"KEY" => 14,
@@ -233,7 +228,7 @@ class Column extends \ArrayObject {
             "NATURE","WHAT"
         ];
 
-        $h = $this->container;
+        $h = $container;
         
 
             $name = $h["name"];
@@ -283,6 +278,7 @@ class Column extends \ArrayObject {
             "N" => "Int", //N   N   d   Numeric field of width n
             "T" => "Datetime", //T  -   -   DateTime,
             "TIMESTAMP" => "TIMESTAMP",
+            "TEXT" => "TEXT",
             "0" => "IGNORE" //// ignore this field
         ];
 
@@ -290,6 +286,6 @@ class Column extends \ArrayObject {
     }
 
     public function toArray(){
-        return $this->getContainer();
+        return $this->getContainerAttribute();
     }
 }

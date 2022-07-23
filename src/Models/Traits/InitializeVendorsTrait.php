@@ -1,7 +1,5 @@
 <?php namespace Sreynoldsjr\ReynoldsDbf\Models\Traits;
 
-use Config;
-
 trait InitializeVendorsTrait {
 
 public function initialize(){

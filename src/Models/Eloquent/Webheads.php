@@ -17,9 +17,10 @@ class Webheads extends BaseModel implements ModelInterface {
    use HeadTrait, DbfValidationTrait, SoftDeletes, \Sreynoldsjr\ReynoldsDbf\Models\Traits\InitializeHeadTrait;
 
   public $fillable = ["INDEX","KEY","ATTENTION", "DATE","BILL_1","BILL_2","BILL_3","BILL_4","COMPANY","STREET","CITY","STATE","POSTCODE","VOICEPHONE","OSOURCE","ISCOMPLETE", "ROOM","DEPT","COUNTRY","FAXPHONE","EMAIL","SENDEMCONF","PO_NUMBER","CINOTE","CXNOTE","TRANSNO","DATESTAMP","TIMESTAMP","LASTDATE","LASTTIME","LASTTOUCH","REMOTEADDR","PSHIP","PIPACK","PEPACK","deleted_at"];
+  
     public $migration = "2022_00_00_04_webheads.php";
     public $timestamps = false;
-    protected $appends = [];
+    protected $appends = ['submitted','freeShipping'];
     protected $table = "webheads";
     protected $indexes = ["REMOTEADDR", "KEY"];
     protected $dbfPrimaryKey = 'REMOTEADDR';
@@ -41,6 +42,15 @@ class Webheads extends BaseModel implements ModelInterface {
   protected $attributeTypes = [ 
     "_config"=>"webheads",
   ];
+
+    protected $with = [];
+
+    /**
+     * The relationship counts that should be eager loaded on every query.
+     *
+     * @var array
+     */
+    protected $withCount = ['items'];
 
     public function scopeIscomplete($query)
     {
@@ -122,24 +132,18 @@ class Webheads extends BaseModel implements ModelInterface {
         $this->SHIPPING = 0.00;
       }
       
-      $this->dbfSave();
-      
+      $this->save();
+
       return $this;
     }
 
-  public function submitOrder($props = false){
-
-    if($props){
-      foreach($props AS $k => $v){
-        $this->$k = $v;
-      }
-    }
+  public function submitOrder(){
     
-    $this->ISCOMPLETE = 1;
-    $this->PSHIP = 5;
-    $this->PIPACK = 5;
-    $this->PEPACK = 5;
-    $this->dbfSave();
+    //$this->ISCOMPLETE = 1;
+
+    $this->update(
+        ['PSHIP'=>5,'PIPACK'=>5,'PEPACK'=>5,]
+    );
     
     return $this;
   }
@@ -194,6 +198,7 @@ class Webheads extends BaseModel implements ModelInterface {
         }
 
         $cart = $user->newCart();
+        unset($cart->table);
         $cart->save();
  
         return $user;
@@ -262,6 +267,10 @@ class Webheads extends BaseModel implements ModelInterface {
         $cart = $user->updateCartTitle($args['input']);
  
         return $user;
+    }
+
+    public function getSubmittedAttribute(){
+        return (Int) $this->PSHIP === 5 && (Int) $this->PEPACK === 5 & (Int) $this->PIPACK === 5;
     }
 
 protected static function boot()

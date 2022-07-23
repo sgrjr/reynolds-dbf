@@ -1,7 +1,8 @@
 <?php namespace Sreynoldsjr\ReynoldsDbf\Console\Commands;
 
 use Illuminate\Console\Command;
-use Sreynoldsjr\ReynoldsDbf\Models\Passwords;
+use Sreynoldsjr\ReynoldsDbf\Models\Eloquent\Vendors;
+use Sreynoldsjr\ReynoldsDbf\Models\Eloquent\Inventories;
 
 class BuildCache extends Command
 {
@@ -10,7 +11,7 @@ class BuildCache extends Command
      *
      * @var string
      */
-    protected $signature = 'rdbf:cache {method?}';
+    protected $signature = 'rdbf:cache {table?} {method?}';
 
     /**
      * The console command description.
@@ -27,7 +28,22 @@ class BuildCache extends Command
     public function handle()
     {
         $this->comment(PHP_EOL."Building Cache " . "...".PHP_EOL);
-        Passwords::buildCache($this->argument('method'));
+        
+        if(!$this->argument('table')){
+            $this->comment(PHP_EOL."Password Cache Everything ...".PHP_EOL);
+            Vendors::buildCache();
+            $this->comment(PHP_EOL."Inventories Cache Everything ...".PHP_EOL);
+            Inventories::buildCache();
+        }else{
+            switch($this->argument('table')){
+                case 'vendors':
+                    Vendors::buildCache($this->argument('method'));
+                    break;
+                case 'inventories':
+                    Inventories::buildCache($this->argument('method'));
+            }
+        }
+        
         $this->comment(PHP_EOL."Cache complete.".PHP_EOL);
     }
 }

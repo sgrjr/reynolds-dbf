@@ -1,6 +1,7 @@
 <?php namespace Sreynoldsjr\ReynoldsDbf\Helpers;
 
-use Config;
+use Cache, Config, DB;
+use Sreynoldsjr\ReynoldsDbf\Helpers\Misc;
 
 class Application {
 
@@ -37,7 +38,7 @@ class Application {
 	}
 
 	private static function browse(){
-    \Cache::forget('browse_products');
+    //\Cache::forget('browse_products');
 		return \Cache::rememberForever('browse_products', function () {
 	          return static::calcBrowseProducts();
 	      }); 
@@ -45,46 +46,25 @@ class Application {
 
 	 private static function calcBrowseProducts(){
           
-        $cats = [
-            "Romance",
-            "Romance - Christian",
-            "Romance - Historical",
-            "Romance - Suspense",
-            "Fiction",
-            "Fiction - History", 
-            "Fiction - General",
-            "Fiction - Historical",
-            "Fiction - Women",
-            "Fiction - Adventure",
-            "Fiction - Science",
-            "Fiction - Christian",
-            "Fiction - Inspirational",
-            "Nonfiction",
-            "Nonfiction - Biography",
-            "Nonfiction - History",
-            "Mystery",
-            "Mystery - Thriller",
-            "Mystery - Christian",
-            "Mystery - Cozy",
-            "Western"
-        ];
+        $cats = static::genres();
         
         $genre_items = [];
 
         foreach($cats AS $cat){
-            $genre_items[] = \App\Helpers\Misc::makeSearchUrl($cat, "category");
+            $genre_items[] = Misc::makeSearchUrl("SCAT_" . $cat->SCAT, 'SCAT', $cat->CAT);
         }
         
-        $now = \App\Helpers\Misc::getYearMonth();
-        $now2 = \App\Helpers\Misc::getYearMonth(1);
-        $now3 = \App\Helpers\Misc::getYearMonth(2);
+        $now = Misc::getYearMonth();
+        $now2 = Misc::getYearMonth(1);
+        $now3 = Misc::getYearMonth(2);
 
         $months = [
-          \App\Helpers\Misc::makeSearchUrl($now["machine"], "DATE", $now["human"]),
-          \App\Helpers\Misc::makeSearchUrl($now2["machine"], "DATE", $now2["human"]),
-          \App\Helpers\Misc::makeSearchUrl($now3["machine"], "DATE", $now3["human"])
+          Misc::makeSearchUrl($now["machine"], "DATE", $now["human"]),
+          Misc::makeSearchUrl($now2["machine"], "DATE", $now2["human"]),
+          Misc::makeSearchUrl($now3["machine"], "DATE", $now3["human"])
         ];
 
+        return array_merge($months, $genre_items);
         return [
                     ["title"=>"Search By Month","items"=>$months],
                     ["title"=>"Genre", "items"=> $genre_items]
@@ -96,8 +76,8 @@ class Application {
 
       $cat = new \stdclass;
       $cat->id = null;
-      $cat->image_root = $config["CATALOG_COVERS_PATH"];
-      $cat->pdf_root = $config["CATALOG_PATH"];
+      $cat->image_root = $config["CATALOG_COVERS_PATH"] . '/';
+      $cat->pdf_root = $config["CATALOG_PATH"] . '/';
       $cat->image_link = "/img/promotions/current";
       $cat->image_path = null;
       $cat->image_ext = null;
@@ -131,7 +111,7 @@ class Application {
         case "current_catalog":
         case "current_catalog_image":
 
-        $search = \Cache::remember('catalog', 360, function () use ($cat) {
+        $search = Cache::remember('catalog', 360, function () use ($cat) {
             return Misc::findFileByDate($cat->image_root, $cat->list);
         });
 
@@ -187,7 +167,7 @@ class Application {
       case "Platinum_Series_Mystery_catalog":
       case "Platinum_Series_Fiction_catalog":
 
-          $cat->pdf_root = $config["CATALOG_SERIES_PATH"];
+          $cat->pdf_root = $config["CATALOG_SERIES_PATH"] . '/';
           $cat->image_link = null;
           $cat->image_path = null;
           $cat->year = null;
@@ -258,12 +238,16 @@ class Application {
         $links->main = collect([]);
         $links->shortCuts = collect([]);
 
-        $links->shortCuts->push(["url"=>"/promotions", "text"=> 'Catalogs and Flyers',"icon"=>""]);
-        $links->shortCuts->push(["url"=>"/search/top-25-titles/list", "text"=> 'Top 25 for ' . date("F"),"icon"=>""]);
-        $links->shortCuts->push(["url"=>"/search/upcoming-titles/list", "text"=> 'Upcoming Titles',"icon"=>""]);
-        $links->shortCuts->push(["url"=>"/search/clearance-titles/list", "text"=> 'Clearance Titles',"icon"=>""]);
+        $links->shortCuts->push(["url"=>"/promotions", "text"=> 'CATALOGS & FLYERS',"icon"=>""]);
+        $links->shortCuts->push(["url"=>"/list/top-25-titles", "text"=> 'TOP SELLING TITLES',"icon"=>""]);
+        $links->shortCuts->push(["url"=>"/list/upcoming-titles", "text"=> 'UPCOMING TITLES',"icon"=>""]);
+        $links->shortCuts->push(["url"=>"/list/clearance-titles", "text"=> 'CLEARANCE TITLES',"icon"=>""]);
 
         $links->main->push(["url"=>"/", "text"=> 'Home',"icon"=>"home"]);
+        $links->main->push(["url"=>"/search", "text"=> 'Search',"icon"=>"search"]);
+        $links->main->push(["url"=>"/news", "text"=> 'About',"icon"=>""]);
+        $links->main->push(["url"=>"/contact", "text"=> 'Contact',"icon"=>""]);
+
         $links->drawer->push([ "url"=>"/promotions", "text"=> 'Catalogues, Flyers',"icon"=>"paw"]);
 
         if(!$user || $user === null){
@@ -275,13 +259,13 @@ class Application {
           $links->drawer->push([ "url"=>"/logout", "text"=> 'Logout',"icon"=>"lock"]);
           $links->main->push([ "url"=>"/logout", "text"=> 'Logout',"icon"=>"lock"]);
 
-         if ($user->can("VIEW_DASHBOARD")){
-          $links->drawer->push(["url"=>"/dashboard", "text"=> $user->name,"icon"=>"home"]);
-          $links->main->push(["url"=>"/dashboard", "text"=> $user->name, "name"=>"brand","icon"=>"person"]);
-         } 
+         //if ($user->can("VIEW_DASHBOARD")){
+          $links->drawer->push(["url"=>"/dashboard", "text"=> 'Dashboard',"icon"=>"home"]); //$user->name
+          $links->main->push(["url"=>"/dashboard", "text"=> 'Dashboard', "name"=>"brand","icon"=>"person"]);//$user->name
+         //} 
   
         if ($user->can("VIEW_REGISTER_USER")){
-          $links->drawer->push([ "url"=>"/register", "text"=> 'Register New User',"icon"=>"howToReg"]);
+          //$links->drawer->push([ "url"=>"/register", "text"=> 'Register New User',"icon"=>"howToReg"]);
         }
   
         if ($user->can("ADMIN_APP")){
@@ -297,4 +281,65 @@ class Application {
   
         return $links;
 	}
+
+public static function genres(){
+  return Cache::rememberForever('application_genres', function(){
+      return static::getGenres();
+  });
+}
+
+private static function getGenres(){
+  return DB::table('inventories')
+    ->select('CAT','SCAT')
+    ->distinct('SCAT')
+    ->whereNotNull('CAT')
+    ->whereNotNull('SCAT')
+    ->orderBy('SCAT')
+    ->get();
+}
+
+public static function promotions(){
+
+  $dir = config('cp.CATALOG_PATH');
+
+  if(!is_dir($dir)){ return [
+        ['url'=>'/static/All_Series_Christian_catalog', 'text'=>'All Series Christian'],
+        ['url'=>'/static/All_Series_Sterling_catalog', 'text'=>'All Series Sterling'],
+        ['url'=>'/static/All_Series_Trade_catalog', 'text'=>'All Series Trade'],
+        ['url'=>'/static/All_Series_Western_catalog', 'text'=>'All Series Western'],
+        ['url'=>'/static/All_Series_Premier_catalog', 'text'=>'All Series Premier'],
+        ['url'=>'/static/All_Series_Platinum_catalog', 'text'=>'All Series Platinum'],
+        ['url'=>'/static/All_Series_Choice_catalog', 'text'=>'All Series Choice'],
+        ['url'=>'/static/All_Series_Bestseller_catalog', 'text'=>'All Series Bestseller'],
+        ['url'=>'/static/current_catalog', 'text'=>'Current Catalog'],
+        ['url'=>'/static/next_catalog', 'text'=>'Next Catalog'],
+        ['url'=>'/static/Premier_Series_Romance_catalog', 'text'=>'Premier Romance'],
+        ['url'=>'/static/Premier_Series_Mystery_catalog', 'text'=>'Premier Mystery'],
+        ['url'=>'/static/Premier_Series_Fiction_Christian_catalog', 'text'=>'Premier Fiction'],
+        ['url'=>'/static/Platinum_Series_Nonfiction_catalog', 'text'=>'Platinum Nonfiction'],
+        ['url'=>'/static/Platinum_Series_Romance_catalog', 'text'=>'Platinum Romance'],
+        ['url'=>'/static/Platinum_Series_Mystery_catalog', 'text'=>'Platinum Mystery'],
+        ['url'=>'/static/Platinum_Series_Fiction_catalog', 'text'=>'Platinum Fiction']
+      ];
+    }
+
+  $files = [];
+  $handle = opendir($dir);
+  $skip = ['.','..'];
+  if ($handle) {
+      while (($entry = readdir($handle)) !== FALSE) {
+          if(!in_array($entry, $skip)) $files[] = [
+            'url'=> '/static/'.str_replace(['.pdf','.PDF'],'',$entry) . '_catalog', 
+            'text'=> trim(str_replace(['.pdf','.PDF','_'],' ',$entry))
+            ];
+      }
+  }
+   
+  closedir($handle);
+
+  return $files;
+
+  
+}
+
 }

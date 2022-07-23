@@ -12,16 +12,19 @@ trait MagicFunctionsTrait {
  */
 public function __get($key)
 {   
-    $att = $this->getAttribute($key);
+    if(isset($this->$key)) return $this->$key;
 
-    if(is_string($att)){
-        return $att;
-    }else if($att !== null){
-        if(is_object($att) && isset($att->value)) return $att->value;
-        return $att;
-    }else{
+    if(!array_key_exists($key, $this->attributes)){
         $name = "get" . ucfirst($key). "Attribute";
         return $this->$name();
+    }else{
+        $att = $this->attributes[$key];
+
+        if(is_object($att)){
+            return $att->value;
+        }else{
+            return $att;
+        }
     }
 }
 
