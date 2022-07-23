@@ -323,7 +323,11 @@ public function toArray(){
 
 public function meta(){
     if (!$this->database()->isOpen()) $this->database()->open();
-    $record = $this->database()->moveTo($this->attributes['INDEX']);
+    $index = 1;
+
+    if(isset($this->attributes['INDEX']) && $this->attributes['INDEX'] != null) $index = $this->attributes['INDEX'];
+
+    $record = $this->database()->moveTo($index);
     $meta = $record->meta();
     if ($this->database()->isOpen()) $this->database()->close();
     return $meta;
