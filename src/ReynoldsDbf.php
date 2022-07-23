@@ -2,6 +2,7 @@
 
 use Sreynoldsjr\ReynoldsDbf\Models\Model;
 use stdclass;
+use Artistan;
 
 class ReynoldsDbf
 {
@@ -83,6 +84,8 @@ class ReynoldsDbf
             if($force) $model->dropTable();
             $model->migrate();            
         }
+
+        Artisan::cal('migrate');
     }
 
      public static function rebuild(){
