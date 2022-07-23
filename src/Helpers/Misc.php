@@ -376,6 +376,7 @@ public static function gauranteedBooksCount($count, $dates, $nature = "CENTE"){
         $binary = [
             "inventories" => ["SUBTITLE"],
             "backdetails" => ["TITLE"],
+            "webdetails" => ["TITLE"],
             'alldetails' => ['SUBTITLE'],
             'allheads' => ['CINOTE'],
             'ancientdetails'=>['TITLE','SUBTITLE','AUTHOR']
