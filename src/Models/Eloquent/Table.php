@@ -60,7 +60,7 @@ class Table {
     }
 
      public function getMeta($toArray = false){
-       return $this->model->dbf()->meta($toArray);
+       return $this->attributes['model']->dbf()->meta($toArray);
     }
 
 }
