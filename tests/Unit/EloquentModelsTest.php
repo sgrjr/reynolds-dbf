@@ -1,4 +1,4 @@
-<?php namespace Sreynoldsjr\ReynoldsDbf\Test;
+<?php namespace Sreynoldsjr\ReynoldsDbf\Test\Unit;
 
 use Sreynoldsjr\ReynoldsDbf\Models\Eloquent\Allheads;
 use Sreynoldsjr\ReynoldsDbf\Models\Eloquent\Alldetails;
