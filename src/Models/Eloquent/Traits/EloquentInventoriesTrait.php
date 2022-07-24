@@ -403,6 +403,14 @@ trait EloquentInventoriesTrait
       return 'titles/purchased_counts.cache';
     }
 
+    public static function emptyPurchasedCounts(){
+      return     `{"0":{
+                    "isbn": "0",
+                    "count": 0,
+                    "dates": []
+                }}`;
+    }
+
     public static function cacheEverything(){
       static::cacheClearInventories();
       static::cachePurchasedCounts();
@@ -413,10 +421,10 @@ trait EloquentInventoriesTrait
       // return a collection of top purchased counts from cache
       //return collect(Cache::rememberForever('top_purchased_counts', function(){
         
-        //if purchased counts have not been cached then do so now
+        //if purchased counts have not been cached then return empty
         if(!Storage::has(static::purchasedCountsLocation())){
-          static::cachePurchasedCounts();
-        }
+          return json_decode(static::emptyPurchasedCounts());//static::cachePurchasedCounts();
+          }
 
         //return the purchased counts from file
         return collect(json_decode(Storage::get(static::purchasedCountsLocation())));
