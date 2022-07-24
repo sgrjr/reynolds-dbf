@@ -102,7 +102,7 @@ class Vendors extends BaseModel implements ModelInterface {
       }
 
      public static function cachePurchased($class, Collection $keys = null){
-
+          ini_set('memory_limit','512M');
           if(!$keys) $keys = static::startCacheKeys();
 
           $output = new ConsoleOutput;
@@ -146,6 +146,7 @@ class Vendors extends BaseModel implements ModelInterface {
      }
 
      private static function cachePlans(Collection $keys = null){
+          ini_set('memory_limit','512M');
           if(!$keys) $keys = static::startCacheKeys();
           $m = new static;
           $m->w('Starting to cache standing orders ...');
