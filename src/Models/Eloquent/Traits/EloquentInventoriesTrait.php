@@ -356,7 +356,7 @@ trait EloquentInventoriesTrait
           'webdetails',
         ];
         
-        $times_purchased = collect([]);
+        $times_purchased = static::emptyPurchasedCounts();
 
          foreach($isbns AS $i){
             $times_purchased[$i] = ['isbn'=>$i, 'count'=> 0, 'dates' => []];
@@ -404,7 +404,7 @@ trait EloquentInventoriesTrait
     }
 
     public static function emptyPurchasedCounts(){
-      return '{"0":{"isbn": "0","count": 0,"dates": []}}';
+      return collect([]);
     }
 
     public static function cacheEverything(){
@@ -419,7 +419,7 @@ trait EloquentInventoriesTrait
         
         //if purchased counts have not been cached then return empty
         if(!Storage::has(static::purchasedCountsLocation())){
-          return collect(json_decode(static::emptyPurchasedCounts()));//static::cachePurchasedCounts();
+          return static::emptyPurchasedCounts();//static::cachePurchasedCounts();
           }
 
         //return the purchased counts from file
