@@ -404,11 +404,7 @@ trait EloquentInventoriesTrait
     }
 
     public static function emptyPurchasedCounts(){
-      return     `{"0":{
-                    "isbn": "0",
-                    "count": 0,
-                    "dates": []
-                }}`;
+      return '{"0":{"isbn": "0","count": 0,"dates": []}}';
     }
 
     public static function cacheEverything(){
@@ -423,7 +419,7 @@ trait EloquentInventoriesTrait
         
         //if purchased counts have not been cached then return empty
         if(!Storage::has(static::purchasedCountsLocation())){
-          return json_decode(static::emptyPurchasedCounts());//static::cachePurchasedCounts();
+          return collect(json_decode(static::emptyPurchasedCounts()));//static::cachePurchasedCounts();
           }
 
         //return the purchased counts from file
