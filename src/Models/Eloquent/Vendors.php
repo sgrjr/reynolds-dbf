@@ -79,7 +79,7 @@ class Vendors extends BaseModel implements ModelInterface {
 
           $dir = storage_path('/app/vendors');
 
-          if(!is_dir($dir)) static::cacheEverything();
+          if(!is_dir($dir)) return static::emptyHistory($key);// static::cacheEverything(); //this doesn't seem to make sense to cache now on the request as the request will just timeout to complete this
 
           $file_name = $dir . '/'.$key.'_vendor.cache';
 
