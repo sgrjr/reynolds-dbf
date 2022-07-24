@@ -310,8 +310,10 @@ trait EloquentInventoriesTrait
             $purchasedCounts = static::getCache('purchasedCounts');
 
             $isbns = $purchasedCounts->except($skip)->sortBy('count')->reverse()->take(25)->keys()->toArray();
-           
-            if(empty($isbns)) $isbns = [122,55,65,75,85,95,155,255,355,655,755,550,301,302,303,304,305,306,307,308,309,310,311,312,313,314,315,316,317,318,319,320,321,322,323,324,325,326,327,328,329,330];
+            
+            if(empty($isbns)) {
+              return $inventory->orderBy('id','DESC')->where('INVNATURE','CENTE');
+            }
 
             $ids = implode(',',$isbns);
 
