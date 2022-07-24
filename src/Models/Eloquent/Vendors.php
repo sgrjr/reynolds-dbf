@@ -111,10 +111,11 @@ class Vendors extends BaseModel implements ModelInterface {
           $progressBar = static::progressBar($output, $steps, $message);
 
           $replace = false;
-          $result = $class::loop(function($record)use($keys, $replace, $progressBar){
+          $class::loop(function($record)use($keys, $replace, $progressBar){
                if($record->KEY != "" && $keys->get($record->KEY) != null){
                     $keys[$record->KEY]->purchased->push($record->PROD_NO);
                     static::storeVendor($keys[$record->KEY], 'purchased', $replace);
+                    $keys[$record->KEY]->purchased = collect([]);
                }
 
                $progressBar->advance();
@@ -122,7 +123,7 @@ class Vendors extends BaseModel implements ModelInterface {
 
           $progressBar->finish();
 
-          return $result;
+          return true;
      }
 
      public static function cacheWebdetails(Collection $keys = null){
@@ -245,11 +246,11 @@ class Vendors extends BaseModel implements ModelInterface {
           static::cacheClear();
           $progressBar->advance();
 
-          static::cachePlans($keys);
-          $progressBar->advance();
+          //static::cachePlans($keys);
+          //$progressBar->advance();
 
-          static::addressesFromVendorFile($keys);
-          $progressBar->advance();
+          //static::addressesFromVendorFile($keys);
+          //$progressBar->advance();
 
           /* GET ISBNS PURCHASED */
           static::cacheWebdetails($keys);
