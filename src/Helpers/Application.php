@@ -331,7 +331,7 @@ public static function promotions(){
   if ($handle) {
       while (($entry = readdir($handle)) !== FALSE) {
           if(!in_array($entry, $skip)) $files[] = [
-            'url'=> '/static/'.str_replace(['.pdf','.PDF'],'',$entry) . '_catalog', 
+            'url'=> '/static/'. $entry,
             'text'=> trim(str_replace(['.pdf','.PDF','_'],' ',$entry))
             ];
       }
