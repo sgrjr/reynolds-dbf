@@ -98,6 +98,12 @@ Trait ModelTrait
         if(isset($input->minimum_price) && $input->minimum_price != false && $input->minimum_price != null) $builder = $builder->where('LISTPRICE',">=", $input->minimum_price);
         if(isset($input->maximum_price) && $input->maximum_price != false && $input->maximum_price != null) $builder = $builder->where('LISTPRICE',"<=", $input->maximum_price);
 
+        if(isset($input->minimum_flatprice) && $input->minimum_flatprice != false && $input->minimum_flatprice != null) $builder = $builder->where('FLATPRICE',">=", $input->minimum_flatprice);
+        if(isset($input->maximum_flatprice) && $input->maximum_flatprice != false && $input->maximum_flatprice != null) $builder = $builder->where('FLATPRICE',"<=", $input->maximum_flatprice);
+
+        if(isset($input->after_pubdate) && $input->after_pubdate != false && $input->after_pubdate != null) $builder = $builder->where('PUBDATE',">=", $input->after_pubdate);
+        if(isset($input->before_pubdate) && $input->before_pubdate != false && $input->before_pubdate != null) $builder = $builder->where('PUBDATE',"<=", $input->before_pubdate);
+
         if(isset($input->TITLE) && $input->TITLE != false && $input->TITLE != null && $input->TITLE != '') $builder = $builder->where('TITLE',"LIKE", '%'.$input->TITLE.'%');
         if(isset($input->AUTHORKEY) && $input->AUTHORKEY != false && $input->AUTHORKEY != null && $input->AUTHORKEY != '') $builder = $builder->where('AUTHORKEY','LIKE', '%'.$input->AUTHORKEY.'%');
         if(isset($input->ISBN) && $input->ISBN != false && $input->ISBN != null && $input->ISBN != '') $builder = $builder->where('ISBN','LIKE', '%'.$input->ISBN.'%');
@@ -115,7 +121,6 @@ Trait ModelTrait
             $builder = $builder->orderBy('PUBDATE','DESC');
         }
         
-
         return $builder;
     }
 

@@ -74,17 +74,17 @@ trait HeadTrait {
 
 		switch(get_class($this)){
 
-			case Webhead::class:
+			case 'App\Models\Cart':
 
-				if($this->ISCOMPLETE){
-					$invoiceTitle="Processing";
+				if($this->submitted){
+					$invoiceTitle="Processing / Not an Invoice";
 				}else{
-					$invoiceTitle="For Review";
+					$invoiceTitle="For Review / Not an Invoice";
 				}
 				break;
 
-			case Backhead::class:
-				$invoiceTitle="Back Ordered";
+			case 'Sreynoldsjr\ReynoldsDbf\Models\Eloquent\Backheads':
+				$invoiceTitle="Back Ordered / Not an Invoice";
 				break;
 			default:
 				$invoiceTitle="Invoice";
@@ -104,10 +104,11 @@ trait HeadTrait {
 		$totaling = $this->cartTotaling();
 		$company = (object) \Config::get('cp')['company'];
 		file_put_contents('tester', json_encode($company));
-  
+
 	  return[
 			"id" => $this->TRANSNO, //string
 			"title"=> $invoiceTitle, //string
+			'ordered_date' => $this->DATE? substr($this->DATE, 4,2) . '/' . substr($this->DATE, 6,2) . '/' . substr($this->DATE, 0,4) : null,
 			"dates" => $invoiceDates, // array of strings in the "DATES" section of invoice, i.e. ~["PO#: $ponumber","Shipped: 11/1/2019"]~
 			"headings"=>$bodyHeadings, //Array of strings for the column heading of each column in body, i.e,. ["ISBN","TITLE","REQUESTED", "SALEPRICE"]
 			"totaling"=>$totaling, // Cart Summary Totaling Array, i.e., ["subtotal"=> $400.01, ...]
@@ -178,5 +179,17 @@ trait HeadTrait {
         
         return $freeShipping;
 		}
+
+    public function getSubmittedAttribute(){
+		return true;
+	}
+
+  public function getItemsCountAttribute(){
+    $ct = 0;
+    foreach($this->items()->select('id','REQUESTED')->get() AS $item){
+        $ct += (Int) $item->REQUESTED;
+    }
+    return $ct;
+  }
 
 }

@@ -11,6 +11,7 @@ use Sreynoldsjr\ReynoldsDbf\Models\Eloquent\Interfaces\ModelInterface;
 use Sreynoldsjr\ReynoldsDbf\Models\Eloquent\Passwords;
 use Sreynoldsjr\ReynoldsDbf\Models\Eloquent\Vendors;
 use Sreynoldsjr\ReynoldsDbf\Models\Eloquent\Webdetails;
+use DB;
 
 class Webheads extends BaseModel implements ModelInterface {
    
@@ -20,7 +21,7 @@ class Webheads extends BaseModel implements ModelInterface {
   
     public $migration = "2022_00_00_04_webheads.php";
     public $timestamps = false;
-    protected $appends = ['submitted','freeShipping'];
+    protected $appends = ['submitted','freeShipping','items_count'];
     protected $table = "webheads";
     protected $indexes = ["REMOTEADDR", "KEY"];
     protected $dbfPrimaryKey = 'REMOTEADDR';
@@ -73,7 +74,7 @@ class Webheads extends BaseModel implements ModelInterface {
 
 
   public function items(){
-    return $this->hasMany(Webdetails::class,'REMOTEADDR','REMOTEADDR');
+    return $this->hasMany(Webdetails::class, 'REMOTEADDR', 'REMOTEADDR');
   }
 
   public function passwords(){

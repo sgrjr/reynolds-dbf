@@ -2,7 +2,7 @@
 
 use Sreynoldsjr\ReynoldsDbf\Models\Model;
 use stdclass;
-use Artistan;
+use Illuminate\Support\Facades\Artisan;
 
 class ReynoldsDbf
 {
@@ -85,7 +85,7 @@ class ReynoldsDbf
             $model->migrate();            
         }
 
-        Artisan::cal('migrate');
+        Artisan::call('migrate');
     }
 
      public static function rebuild(){

@@ -9,7 +9,7 @@ class Broheads extends BaseModel implements ModelInterface {
 	
 	use HeadTrait, SoftDeletes, \Sreynoldsjr\ReynoldsDbf\Models\Traits\InitializeHeadTrait;
     
-	protected $appends = ['freeShipping'];
+	protected $appends = ['freeShipping','items_count'];
 	protected $table = "broheads";	
 	public $migration = "2022_00_00_08_broheads.php";
 	protected $dbfPrimaryKey = 'TRANSNO';
@@ -23,6 +23,7 @@ class Broheads extends BaseModel implements ModelInterface {
       ];
     protected $with = [];
     protected $withCount = ['items'];
+
   public function items(){
     return $this->hasMany(Brodetails::class,'TRANSNO','TRANSNO');
   }

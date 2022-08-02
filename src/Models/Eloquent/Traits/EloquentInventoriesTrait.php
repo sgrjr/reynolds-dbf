@@ -301,10 +301,6 @@ trait EloquentInventoriesTrait
 
           case 'trade':
             return $inventory->where("PUBDATE",">=", Misc::getYearMonth()["machine"]."00")->where("INVNATURE","TRADE")->orderBy("PUBDATE","DESC")->limit($first);
-          case 'clearance':
-          case 'clearance-titles':
-            // if FLATPRICE is equal to or greater than 1.00 display FLATPRICE as the LISTPRICE WITH NO DISCOUNT APPLIED
-            return $inventory->where("FLATPRICE",">=", 1.00)->where("INVNATURE","CENTE")->limit($first);
           case 'top-25-titles':
             $skip = ['0000000084','0000000034','0000000085','0000000071','0000000033','0000000016','0000000025','0000000004','0000000024','0000000028','0000000011','0000000006','0000000009','0000000023','0000000005','0000000032','0000000029','0000000027','0000000010'];
             $purchasedCounts = static::getCache('purchasedCounts');
@@ -346,7 +342,7 @@ trait EloquentInventoriesTrait
     }
 
     public function getIsClearanceAttribute(){
-      return $this->LISTPRICE >= 1.00 && $this->LISTPRICE <= 11.00;
+      return $this->FLATPRICE >= 1.00 && $this->FLATPRICE <= 11.00;
     }
 
     public static function cachePurchasedCounts(){

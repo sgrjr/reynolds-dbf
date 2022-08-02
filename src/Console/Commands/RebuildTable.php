@@ -2,6 +2,9 @@
 
 use Illuminate\Console\Command;
 use Sreynoldsjr\ReynoldsDbf\ReynoldsDbf;
+use Illuminate\Support\Facades\Artisan;
+use Sreynoldsjr\ReynoldsDbf\Models\Eloquent\Passwords;
+use Sreynoldsjr\ReynoldsDbf\Models\Eloquent\Vendors;
 
 class RebuildTable extends Command
 {
@@ -29,7 +32,22 @@ class RebuildTable extends Command
         if(!$this->argument('table')) return ReynoldsDbf::rebuild();
 
         $this->comment(PHP_EOL."Rebuilding database Table ".$this->argument('table')."...".PHP_EOL);
+
+        if($this->argument('table') === 'users') return $this->users();
+
         $class_name = '\Sreynoldsjr\ReynoldsDbf\Models\Eloquent\\'  . ucfirst($this->argument('table'));
         (new $class_name)->rebuildTable();
+    }
+
+    public function users(){
+        
+        $this->comment(PHP_EOL."Rebuilding Vendors table...".PHP_EOL);
+        (new Vendors)->rebuildTable();
+        
+        $this->comment(PHP_EOL."Rebuilding Passwords table...".PHP_EOL);
+        (new Passwords)->rebuildTable();
+        
+        $this->comment(PHP_EOL."Rebuilding Teams...".PHP_EOL);
+        Artisan::call('teams:seed --reset');
     }
 }

@@ -2,7 +2,7 @@
 
 use Illuminate\Console\Command;
 use \Sreynoldsjr\ReynoldsDbf\ReynoldsDbf;
-use Artisan;
+use Illuminate\Support\Facades\Artisan;
 
 class Install extends Command
 {
@@ -41,7 +41,7 @@ class Install extends Command
         // Seed the Tables
         if($this->option('seed')) ReynoldsDbf::seed($this->option('force'));
 
-        if($this->option('teams')) Artisan::call('teams:seed --reset' . $force);
+        if($this->option('teams')) Artisan::call('teams:seed --reset');
         //Cache
         if($this->option('cache')){
             Artisan::call('rdbf:cache');

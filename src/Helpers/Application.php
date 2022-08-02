@@ -28,12 +28,12 @@ class Application {
 			"browse" => static::browse(),
 			"catalog" => static::catalog(),
 			"searchFilters" => static::searchFilters(),
-			"slider" => static::slider(),
+			//"slider" => static::slider(),
 			"links" => static::links($user),
-      "client" => "cp",
-      "domain" => "centerpointlargeprint.com",
-      "appDescription" => "The Smart Choice for Large Print! | 1-800-929-9108",
-      "siteName" => "Center Point Large Print"
+      //"client" => "cp",
+      //"domain" => "centerpointlargeprint.com",
+      //"appDescription" => "The Smart Choice for Large Print! | 1-800-929-9108",
+      //"siteName" => "Center Point Large Print"
 		];
 	}
 
@@ -223,7 +223,7 @@ class Application {
     }
 
 	private static function searchFilters(){
-		return [["title","Title"],["isbns","ISBN"],["author","Author"],["price","Price"],["genre","Genre"],["series","Series"]];
+		return [["TITLE","Title"],["ISBN","ISBN"],["AUTHOR","Author"],["LISTPRICE","Price"],["CAT","Genre"],["SERIES","Series"],['AFTER_PUBDATE','Published After'],['BEFORE_PUBDATE','Published Before']];
 	}
 
 	private static function slider(){
@@ -250,14 +250,16 @@ class Application {
 
         $links->drawer->push([ "url"=>"/promotions", "text"=> 'Catalogues, Flyers',"icon"=>"paw"]);
 
+
         if(!$user || $user === null){
-          $links->drawer->push([ "url"=>"/login", "text"=> 'Login',"icon"=>"lockOpen"]);
-          $links->main->push([ "url"=>"/login", "text"=> 'Login',"icon"=>"lockOpen"]);
+          //$links->drawer->push([ "url"=>"/login", "text"=> 'Login',"icon"=>"lockOpen"]);
+          //$links->main->push([ "url"=>"/login", "text"=> 'Login',"icon"=>"lockOpen"]);
           return $links;
         }
 
-          $links->drawer->push([ "url"=>"/logout", "text"=> 'Logout',"icon"=>"lock"]);
-          $links->main->push([ "url"=>"/logout", "text"=> 'Logout',"icon"=>"lock"]);
+
+          //$links->drawer->push([ "url"=>"/logout", "text"=> 'Logout',"icon"=>"lock"]);
+          //$links->main->push([ "url"=>"/logout", "text"=> 'Logout',"icon"=>"lock"]);
 
          //if ($user->can("VIEW_DASHBOARD")){
           $links->drawer->push(["url"=>"/dashboard", "text"=> 'Dashboard',"icon"=>"home"]); //$user->name
