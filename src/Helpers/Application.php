@@ -339,9 +339,7 @@ public static function promotions(){
    
   closedir($handle);
 
-  return $files;
-
-  
+  return array_reverse($files);
 }
 
 }
