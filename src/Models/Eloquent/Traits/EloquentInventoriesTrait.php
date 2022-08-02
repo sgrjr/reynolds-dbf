@@ -199,14 +199,6 @@ trait EloquentInventoriesTrait
 
     return static::
         where("PUBDATE",">=", Misc::getYearMonth(1)["machine"]."00")->where("INVNATURE","CENTE");
-       /*  
-      $data = Misc::gauranteedBooksCount(30, [ 
-        Misc::getYearMonth(1)["machine"]."00", 
-        Misc::getYearMonth()["machine"]."00",
-        Misc::getYearMonth(-1)["machine"]."00",
-        Misc::getYearMonth(-2)["machine"]."00"
-      ]);
-      return Misc::dataToPaginator($data);  */
     }
 
 
@@ -347,11 +339,11 @@ trait EloquentInventoriesTrait
 
     public static function cachePurchasedCounts(){
 
-      $isbns = (new static)->pluck('ISBN');
+      $isbns = (new static)->where('STATUS', 'Available')->where('INVNATURE','CENTE')->pluck('ISBN');
  
         $output = new ConsoleOutput();
         $tables = [
-          'ancientdetails',
+          //'ancientdetails', //will skip this for now
           'alldetails',
           'backdetails',
           'brodetails',
