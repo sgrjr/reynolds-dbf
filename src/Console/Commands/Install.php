@@ -61,7 +61,7 @@ class Install extends Command
         ReynoldsDbf::seed(true);
 
         $this->comment(PHP_EOL."-->3. seed teams.".PHP_EOL);
-        ReynoldsDbf::seed(true);
+        Artisan::call('teams:seed --reset');
 
         $this->comment(PHP_EOL."-->4. cache everything.".PHP_EOL);
         Artisan::call('rdbf:cache');
