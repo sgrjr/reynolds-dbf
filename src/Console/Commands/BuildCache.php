@@ -27,6 +27,8 @@ class BuildCache extends Command
      */
     public function handle()
     {
+        ini_set('memory_limit','512M');
+        
         $this->comment(PHP_EOL."Building Cache " . "...".PHP_EOL);
         
         if(!$this->argument('table')){
